@@ -1,0 +1,326 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "CleanLoop",
+  "@appTitle": {
+    "description": "The app name"
+  },
+  
+  "welcome": "Welcome",
+  "welcomeSubtitle": "Micro cleaning habits for a tidy home",
+  "getStarted": "Get Started",
+  
+  "onboardingTitle1": "Daily Tasks",
+  "onboardingSubtitle1": "Receive one small cleaning task each day",
+  "onboardingTitle2": "Build Habits",
+  "onboardingSubtitle2": "Create lasting cleaning routines effortlessly",
+  "onboardingTitle3": "Track Progress",
+  "onboardingSubtitle3": "Watch your home transform over time",
+  "continueButton": "Continue",
+  "skip": "Skip",
+  
+  "roomSetupTitle": "Select Your Rooms",
+  "roomSetupSubtitle": "Which rooms would you like to keep clean?",
+  "kitchen": "Kitchen",
+  "bathroom": "Bathroom",
+  "bedroom": "Bedroom",
+  "livingRoom": "Living Room",
+  "office": "Office",
+  "laundryRoom": "Laundry Room",
+  "entrance": "Entrance",
+  "balcony": "Balcony",
+  "garage": "Garage",
+  
+  "timeSetupTitle": "When are you available?",
+  "timeSetupSubtitle": "We'll send reminders during this time",
+  "startTime": "Start",
+  "endTime": "End",
+  
+  "durationSetupTitle": "How much time?",
+  "durationSetupSubtitle": "How many minutes can you spare daily?",
+  "minutes": "{count} minutes",
+  "@minutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "minutesShort": "{count} min",
+  "@minutesShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "home": "Home",
+  "progress": "Progress",
+  "settings": "Settings",
+  "profile": "Profile",
+  
+  "dailyTask": "Daily Task",
+  "todaysTask": "Today's Task",
+  "noTaskToday": "No task today",
+  "getTask": "Get Today's Task",
+  "startTask": "Start Task",
+  "taskCompleted": "Task Completed!",
+  "greatJob": "Great job!",
+  "taskCompletedMessage": "Today's task is completed.",
+  "backToHome": "Back to Home",
+  
+  "timer": "Timer",
+  "holdToComplete": "Hold to Complete",
+  "completed": "Completed",
+  "running": "Running",
+  "ready": "Ready",
+  "start": "Start",
+  "resume": "Resume",
+  "pause": "Pause",
+  "earlyComplete": "Complete early",
+  "timeUp": "Time's up! Complete when ready",
+  
+  "recentActivity": "Recent Activity",
+  "recentCleans": "Recent Cleans",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "noRecentActivity": "No recent activity",
+  "allMicroHabitsLogged": "All micro-habits logged.",
+  
+  "notificationTime": "Notification Time",
+  "soundEffects": "Sound Effects",
+  "motivationalMessages": "Motivational Messages",
+  "manageRooms": "Manage Rooms",
+  "language": "Language",
+  "signOut": "Sign Out",
+  "deleteAccount": "Delete Account",
+  
+  "loginTitle": "Welcome Back",
+  "loginWelcome": "Welcome!",
+  "loginSubtitle": "Sign in to continue",
+  "createAccount": "Create Account",
+  "startCleaningJourney": "Start your cleaning journey",
+  "email": "Email",
+  "password": "Password",
+  "name": "Name",
+  "signIn": "Sign In",
+  "signUp": "Sign Up",
+  "orContinueWith": "or",
+  "continueWithGoogle": "Continue with Google",
+  "continueWithApple": "Continue with Apple",
+  "dontHaveAccount": "Don't have an account?",
+  "alreadyHaveAccount": "Already have an account?",
+  "forgotPassword": "Forgot password?",
+  
+  "errorOccurred": "An error occurred",
+  "tryAgain": "Try Again",
+  "cancel": "Cancel",
+  "save": "Save",
+  "done": "Done",
+  "yes": "Yes",
+  "no": "No",
+  "ok": "OK",
+  "add": "Add",
+  "exit": "Exit",
+  "complete": "Complete",
+  
+  "english": "English",
+  "turkish": "Turkish",
+  
+  "cleanHomePeacefulLife": "Clean home,\npeaceful life",
+  "onlyTenMinutesDaily": "Keep your home tidy\nwith just 10 minutes a day",
+  "microTasksBigDifference": "Micro tasks, big difference",
+  "newSurpriseDaily": "A new surprise every day",
+  "streakMotivation": "Motivation with streaks",
+  
+  "helloUser": "Hello, {name}! 👋",
+  "@helloUser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "hello": "Hello! 👋",
+  "cleaningTimeToday": "It's cleaning time today!",
+  "dayStreak": "{count} Days",
+  "@dayStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "cleaningTimeCame": "Cleaning time has come!",
+  "needsSomeTidying": "Needs some tidying",
+  "canTidyUpToday": "We can tidy up a bit today",
+  "homeLooksGood": "Home looks good!",
+  "perfectSparklingClean": "Perfect! Sparkling clean ✨",
+  "letsStartHomesWaiting": "Let's start, home is waiting!",
+  "fewTasksWillFix": "A few small tasks will fix it.",
+  "homeNotBadJustSmallTouches": "Home's not bad, just small touches needed.",
+  "doingGreatKeepItUp": "Doing great, keep it up!",
+  "congratsHomeLooksAmazing": "Congrats! Your home looks amazing.",
+  
+  "todaysSurpriseReady": "Today's surprise is ready",
+  "onlyTakesMinutes": "Takes only {count} minutes",
+  "@onlyTakesMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "openSurprise": "Open Surprise",
+  "todaysTaskCompleted": "Today's task completed! 🎉",
+  "newSurpriseAwaitsTomorrow": "A new surprise awaits tomorrow",
+  
+  "last14Days": "LAST 14 DAYS",
+  "currentStreak": "Current Streak",
+  "bestStreak": "Best Streak",
+  "days": "Days",
+  "keepItUp": "Keep it up!",
+  "goalDays": "Goal: {count} Days",
+  "@goalDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "cleaningLover": "Cleaning Lover",
+  "roomsCountDuration": "{roomCount} rooms • {minutes} min/day",
+  "@roomsCountDuration": {
+    "placeholders": {
+      "roomCount": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSettings": "Home Settings",
+  "myRooms": "My Rooms",
+  "roomsCount": "{count} rooms",
+  "@roomsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyDuration": "Daily Duration",
+  "minutesDuration": "{count} minutes",
+  "@minutesDuration": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifications": "Notifications",
+  "taskNotifications": "Task Notifications",
+  "dailyTaskReminder": "Daily task reminder",
+  "dailyMotivationNotifications": "Daily motivation notifications",
+  "application": "Application",
+  "sounds": "Sounds",
+  "completionAndNotificationSounds": "Completion and notification sounds",
+  "languageSelector": "Language",
+  "account": "Account",
+  "signOutFromAccount": "Sign out from your account",
+  "resetData": "Reset Data",
+  "deleteAllProgressAndSettings": "Delete all progress and settings",
+  
+  "confirmSignOut": "Are you sure you want to sign out?",
+  "confirmResetData": "All your progress, streaks, and settings will be deleted. This action cannot be undone.",
+  "reset": "Reset",
+  
+  "dailyDurationQuestion": "How much time do you want to spend each day?",
+  "notificationTimeQuestion": "When would you like to receive daily task notifications?",
+  
+  "addNewRoom": "Add new room",
+  
+  "confirmExitTitle": "Are you sure you want to exit?",
+  "progressWillNotBeSaved": "Your progress will not be saved.",
+  "confirmEarlyComplete": "Are you sure you want to complete the task now?",
+  
+  "whichRoomsInHome": "Which rooms are in your home?",
+  "tasksWillBeAssigned": "Tasks will be assigned based on these rooms",
+  "selectedRooms": "Selected Rooms ({count})",
+  "@selectedRooms": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "quickAdd": "Quick Add",
+  "addCustomRoom": "Add Custom Room",
+  "customRoomTitle": "Add Custom Room",
+  "enterRoomName": "Enter room name",
+  "maxRoomsReached": "You can add up to 10 rooms",
+  "roomAlreadyExists": "This room already exists",
+  "atLeastOneRoom": "At least 1 room is required",
+  "selectAtLeastOneRoom": "Select at least 1 room",
+  "yourRooms": "Your Rooms",
+  
+  "emailRequired": "Email is required",
+  "enterValidEmail": "Enter a valid email",
+  "passwordRequired": "Password is required",
+  "passwordMinLength": "Password must be at least 6 characters",
+  "nameRequired": "Name is required",
+  "emailVerificationRequired": "Email verification required",
+  "registrationSuccessVerifyEmail": "Registration successful! We've sent a verification link to your email. Please check your inbox.",
+  
+  "startNow": "Start Now!",
+  "doItLater": "I'll do it later",
+  
+  "availableTime": "Available Time",
+  "whenAreYouAvailable": "When are you available?",
+  "notificationsBetweenTime": "We'll send notifications during these hours",
+  "notificationsRandomTime": "Notifications will be sent at a random time within this range",
+  "endTimeMustBeAfterStart": "End time must be after start time",
+  
+  "dailyGoal": "Daily Goal",
+  "howMuchTimeDaily": "How much time can you spare daily?",
+  "tasksAdjustedByDuration": "Tasks will be adjusted based on this duration",
+  "yourSelections": "Your Selections",
+  "rooms": "Rooms",
+  "timeRange": "Time Range",
+  "quickAndPracticalTasks": "Quick and practical tasks",
+  "moreComprehensiveTasks": "More comprehensive tasks",
+  "startCleaning": "Start Cleaning! 🧹",
+  
+  "holdAndComplete": "Hold to Clean 🧽",
+  "cleaning": "Cleaning...",
+  
+  "childRoom": "Child's Room",
+  "studyRoom": "Study Room",
+  "hallway": "Hallway",
+  
+  "defaultTaskTitle": "Cleaning Task",
+  "monthJan": "Jan",
+  "monthFeb": "Feb",
+  "monthMar": "Mar",
+  "monthApr": "Apr",
+  "monthMay": "May",
+  "monthJun": "Jun",
+  "monthJul": "Jul",
+  "monthAug": "Aug",
+  "monthSep": "Sep",
+  "monthOct": "Oct",
+  "monthNov": "Nov",
+  "monthDec": "Dec",
+  "dayMon": "Mon",
+  "dayTue": "Tue",
+  "dayWed": "Wed",
+  "dayThu": "Thu",
+  "dayFri": "Fri",
+  "daySat": "Sat",
+  "daySun": "Sun",
+  "dateTimeFormat": "{month} {day}, {time}"
+}
