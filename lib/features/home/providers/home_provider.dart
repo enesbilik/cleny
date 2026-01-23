@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../core/services/cache_service.dart';
+import '../../../core/services/onesignal_service.dart';
 import '../../../shared/models/daily_task.dart';
 import '../../../shared/models/room.dart';
 import '../../../shared/models/task_catalog.dart';
@@ -331,6 +332,9 @@ class HomeNotifier extends StateNotifier<HomeState> {
       // Verileri yeniden yükle (streak ve seviye güncellemesi için)
       await loadData(forceRefresh: true);
       
+      // OneSignal tag'lerini güncelle (push notification segmentasyonu için)
+      await _updateOneSignalTags();
+      
       debugPrint('completeTask: Task completed successfully');
     } catch (e) {
       debugPrint('completeTask ERROR: $e');
@@ -361,6 +365,28 @@ class HomeNotifier extends StateNotifier<HomeState> {
       return Room.fromJson(response);
     } catch (e) {
       return null;
+    }
+  }
+
+  /// OneSignal tag'lerini güncelle (push notification segmentasyonu için)
+  Future<void> _updateOneSignalTags() async {
+    try {
+      // Görev durumu
+      final isCompletedToday = state.todayTask?.status == DailyTaskStatus.completed;
+      await OneSignalService.updateTaskStatus(
+        completedToday: isCompletedToday,
+        totalCompleted: state.recentCleans.length,
+      );
+      
+      // Streak bilgisi
+      await OneSignalService.updateStreakTag(state.currentStreak);
+      
+      // Son aktif zaman
+      await OneSignalService.updateLastActive();
+      
+      debugPrint('OneSignal tags updated: completed=$isCompletedToday, streak=${state.currentStreak}');
+    } catch (e) {
+      debugPrint('OneSignal tag update error: $e');
     }
   }
 

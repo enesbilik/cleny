@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/supabase_service.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/onesignal_service.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../settings/presentation/screens/settings_screen.dart';
 import '../../../settings/providers/settings_provider.dart';
@@ -22,6 +24,36 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Bildirim izni iste
+    _requestNotificationPermission();
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    // Biraz gecikme ile iste (UI yüklendikten sonra)
+    await Future.delayed(const Duration(seconds: 1));
+    
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+    final granted = await notificationService.requestPermission();
+    
+    debugPrint('Bildirim izni: ${granted ? "Verildi ✅" : "Reddedildi ❌"}');
+    
+    // İzin verildiyse varsayılan bildirimleri zamanla
+    if (granted) {
+      await notificationService.scheduleDailyTaskNotification(
+        hour: 19,
+        minute: 0,
+      );
+    }
+    
+    // OneSignal - Kullanıcıyı senkronize et ve tag'leri güncelle
+    await OneSignalService.syncCurrentUser();
+    await OneSignalService.updateLastActive();
+  }
 
   void _onTabChanged(int index) {
     setState(() => _currentIndex = index);

@@ -12,6 +12,7 @@ import 'core/services/supabase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/sound_service.dart';
 import 'core/services/cache_service.dart';
+import 'core/services/onesignal_service.dart';
 import 'core/providers/locale_provider.dart';
 
 void main() async {
@@ -48,7 +49,10 @@ void main() async {
     // Offline modda devam et
   }
 
-  // Bildirimleri başlat
+  // OneSignal Push Notifications başlat
+  await OneSignalService.initialize();
+
+  // Local bildirimleri başlat
   await NotificationService().initialize();
 
   // Ses servisini başlat

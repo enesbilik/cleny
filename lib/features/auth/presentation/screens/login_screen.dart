@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/onesignal_service.dart';
 import '../../../../shared/providers/app_state_provider.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
@@ -140,6 +141,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _navigateAfterAuth() async {
     if (!mounted) return;
+    
+    // OneSignal'a kullanıcıyı kaydet (push notifications için)
+    await OneSignalService.syncCurrentUser();
     
     // Supabase'den onboarding durumunu kontrol et
     await ref.read(appStateProvider.notifier).checkOnboardingFromSupabase();

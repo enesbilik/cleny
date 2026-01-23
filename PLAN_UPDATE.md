@@ -129,15 +129,15 @@
 
 ### 🔴 Yüksek Öncelik (Manuel Yapılandırma Gerekiyor)
 
-#### 1. Google OAuth Yapılandırması
-- [ ] Google Cloud Console'da proje oluştur
-- [ ] OAuth Consent Screen ayarla
-- [ ] iOS Client ID oluştur (Bundle ID: `com.cleanloop.cleanloop`)
-- [ ] Android Client ID oluştur (SHA-1 fingerprint ile)
-- [ ] Web Client ID oluştur (Supabase redirect URL ile)
-- [ ] Supabase Dashboard → Authentication → Providers → Google aktifleştir
-- [ ] iOS `Info.plist`'te `GIDClientID` güncelle
-- **Rehber:** `OAUTH_SETUP_GUIDE.md`
+#### 1. Google OAuth Yapılandırması ✅
+- [x] Google Cloud Console'da proje oluşturuldu
+- [x] OAuth Consent Screen ayarlandı
+- [x] iOS Client ID oluşturuldu
+- [x] Android Client ID oluşturuldu (SHA-1 ile)
+- [x] Web Client ID oluşturuldu
+- [x] Supabase Dashboard → Google provider aktifleştirildi
+- [x] iOS `Info.plist` güncellendi
+- [x] Flutter auth_service.dart güncellendi
 
 #### 2. Apple OAuth Yapılandırması
 - [ ] Apple Developer Console'da App ID oluştur
@@ -163,12 +163,17 @@
 
 ### 🟡 Orta Öncelik
 
-#### 5. Push Notifications (FCM)
-- [ ] Firebase projesi oluştur
-- [ ] Firebase Cloud Messaging entegrasyonu
-- [ ] iOS APNs sertifikası
-- [ ] Android configuration
-- [ ] Backend'den bildirim gönderme
+#### 5. Push Notifications (OneSignal) ✅
+- [x] OneSignal hesabı oluşturuldu
+- [x] Firebase Service Account JSON eklendi
+- [x] Flutter onesignal_flutter paketi eklendi
+- [x] OneSignalService oluşturuldu
+- [x] Login sonrası kullanıcı senkronizasyonu
+- [x] Görev tamamlandığında tag güncelleme
+- [x] Uygulama açıldığında last_active güncelleme
+- [ ] OneSignal Dashboard'da segment'ler oluştur
+- [ ] OneSignal Dashboard'da zamanlanmış mesajlar kur
+- [ ] iOS APNs sertifikası (gerçek cihaz için)
 
 #### 6. Provider'ları API'ye Bağlama
 - [ ] Edge Functions deploy sonrası yapılabilir

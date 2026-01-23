@@ -213,5 +213,109 @@ class NotificationService {
       ),
     );
   }
+
+  /// 🧪 TEST: Anında bildirim göster
+  Future<void> showTestNotification() async {
+    await _notifications.show(
+      999,
+      'Test Bildirimi 🧪',
+      'Bildirimler çalışıyor! Harika!',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'test',
+          'Test',
+          channelDescription: 'Test bildirimleri',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+    );
+  }
+
+  /// 🧪 TEST: 5 saniye sonra bildirim göster
+  Future<void> showDelayedTestNotification() async {
+    final scheduledDate = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+    
+    await _notifications.zonedSchedule(
+      998,
+      'Zamanlanmış Test 🕐',
+      '5 saniye sonra geldi! Zamanlama çalışıyor!',
+      scheduledDate,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'test',
+          'Test',
+          channelDescription: 'Test bildirimleri',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+    
+    debugPrint('Test bildirimi zamanlandı: $scheduledDate');
+  }
+
+  /// Motivasyon mesajları listesi
+  static const List<Map<String, String>> motivationMessages = [
+    {'title': 'Bugün Harika Bir Gün! 🌟', 'body': 'Sadece 10 dakika ile evini değiştir!'},
+    {'title': 'Süpermen Değilsin, Ama... 💪', 'body': 'Süper temiz bir ev yapabilirsin!'},
+    {'title': 'Netflix Bekleyebilir 📺', 'body': 'Önce 10 dakika temizlik, sonra dizi!'},
+    {'title': 'Temizlik = Terapi 🧘', 'body': 'Zihnini de temizle, evini de!'},
+    {'title': '3... 2... 1... Başla! 🚀', 'body': 'Bugünün görevi seni bekliyor!'},
+    {'title': 'Anne Görse Gurur Duyardı 👩', 'body': '10 dakikada anneyi mutlu et!'},
+    {'title': 'Streak\'ini Kırma! 🔥', 'body': 'Bugün de devam et, şampiyon!'},
+    {'title': 'Evdeki Kahraman! 🦸', 'body': 'Bugünkü görevini al ve parla!'},
+    {'title': 'Mikro Görev Zamanı! ⚡', 'body': 'Küçük adım, büyük fark yaratır!'},
+    {'title': 'Temiz Ev, Mutlu Sen! 😊', 'body': 'Bugün de kendine bir iyilik yap!'},
+  ];
+
+  /// 🧪 TEST: Rastgele motivasyon bildirimi göster (5 saniye sonra)
+  Future<void> showRandomMotivationNotification() async {
+    final random = DateTime.now().millisecondsSinceEpoch % motivationMessages.length;
+    final message = motivationMessages[random];
+    final scheduledDate = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
+    
+    await _notifications.zonedSchedule(
+      997,
+      message['title']!,
+      message['body']!,
+      scheduledDate,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'motivation',
+          'Motivasyon',
+          channelDescription: 'Motivasyon bildirimleri',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+    
+    debugPrint('Motivasyon bildirimi zamanlandı: $scheduledDate');
+  }
 }
 

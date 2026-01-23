@@ -10,6 +10,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../providers/settings_provider.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/supabase_service.dart';
+import '../../../../core/services/onesignal_service.dart';
 
 /// Ayarlar içeriği - Tab içinde kullanılabilir
 class SettingsContent extends ConsumerWidget {
@@ -464,6 +465,7 @@ class SettingsContent extends ConsumerWidget {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
+              await OneSignalService.removeExternalUserId();
               await authService.signOut();
               ref.read(appStateProvider.notifier).clearOnLogout();
               router.go(AppRoutes.login);
