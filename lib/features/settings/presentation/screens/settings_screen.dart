@@ -9,6 +9,7 @@ import '../../../../shared/providers/app_state_provider.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../providers/settings_provider.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/supabase_service.dart';
 
 /// Ayarlar içeriği - Tab içinde kullanılabilir
 class SettingsContent extends ConsumerWidget {
@@ -68,7 +69,7 @@ class SettingsContent extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.cleaningLover,
+                        _getUserDisplayName(l10n),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -414,6 +415,36 @@ class SettingsContent extends ConsumerWidget {
       hour: int.tryParse(parts[0]) ?? 19,
       minute: int.tryParse(parts[1]) ?? 0,
     );
+  }
+
+  /// Kullanıcı adını al (Google/Apple login'den veya email'den)
+  String _getUserDisplayName(AppLocalizations l10n) {
+    final user = SupabaseService.currentUser;
+    if (user == null) return l10n.cleaningLover;
+
+    // Google/Apple login'den gelen isim
+    final metadata = user.userMetadata;
+    if (metadata != null) {
+      // Google login
+      final fullName = metadata['full_name'] as String?;
+      if (fullName != null && fullName.isNotEmpty) return fullName;
+
+      // Alternatif isim alanları
+      final name = metadata['name'] as String?;
+      if (name != null && name.isNotEmpty) return name;
+    }
+
+    // Email'den isim çıkar (@ öncesi)
+    final email = user.email;
+    if (email != null && email.isNotEmpty) {
+      final namePart = email.split('@').first;
+      // İlk harfi büyük yap
+      if (namePart.isNotEmpty) {
+        return namePart[0].toUpperCase() + namePart.substring(1);
+      }
+    }
+
+    return l10n.cleaningLover;
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
