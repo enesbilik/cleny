@@ -35,6 +35,10 @@ class AuthService {
   // Google Sign In instance
   final _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    // iOS için Client ID
+    clientId: '619713734853-4bqmv21ipjnd076untj9sq12dl6ue10i.apps.googleusercontent.com',
+    // Android ve Web için Server Client ID (Supabase doğrulaması için)
+    serverClientId: '619713734853-l94j01ruriqk2divg2jmrfvdh7nln5n1.apps.googleusercontent.com',
   );
 
   /// Mevcut kullanıcı
