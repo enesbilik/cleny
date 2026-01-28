@@ -112,6 +112,24 @@ Algoritma şu kuralları uygular:
 3. Kural sağlanamazsa kademeli gevşetme yapılır
 4. Her gün Europe/Istanbul timezone'una göre sıfırlanır
 
+## 📋 Proje Durumu ve Planlar
+
+**Güncel yol haritası ve yapılacaklar için:** [`PROJECT_ROADMAP.md`](./PROJECT_ROADMAP.md) dosyasına bakın.
+
+### Hızlı Durum
+- ✅ MVP Tamamlandı (%95)
+- 🚧 Production Hazırlığı (%60)
+- 📊 12/12 özellik tamamlandı
+- ⏳ 7 özellik bekliyor (3 yüksek öncelik)
+
+## 📚 Dokümantasyon
+
+- [`PROJECT_ROADMAP.md`](./PROJECT_ROADMAP.md) - **Güncel yol haritası ve planlar**
+- [`docs/plans/`](./docs/plans/) - Arşiv plan dosyaları
+- [`OAUTH_SETUP_GUIDE.md`](./OAUTH_SETUP_GUIDE.md) - OAuth yapılandırma rehberi
+- [`SETUP_GUIDE.md`](./SETUP_GUIDE.md) - Detaylı kurulum rehberi
+- [`TEST_CHECKLIST.md`](./TEST_CHECKLIST.md) - Test checklist'i
+
 ## Lisans
 
 MIT

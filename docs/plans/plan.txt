@@ -1,0 +1,299 @@
+
+# CleanLoop MVP — Ürün & Bitiş Checklist Dokümanı (Cursor Spec)
+
+## ✅ DURUM: TAMAMLANDI (2026-01-23)
+
+---
+
+## 0) Amaç ve MVP Tanımı
+
+**Amaç:** Beyaz yakalıların günde 10–15 dk ayırarak "farkında olmadan" mikro temizlik görevleri yapmasını sağlamak.
+**MVP Tanımı:** Kullanıcıyı tanı → her gün akıllı/random görev üret → görev sunumu sürprizli olsun → timer ile başlat → kullanıcı "tamamladım" + mini temizlik animasyonu → ev görseli kirli/temiz geri bildirim → geçmiş (streak + günler) kayıt.
+
+---
+
+## 1) Özellikler (Detaylı Spec)
+
+### 1.1 Onboarding (Kullanıcıyı Tanıma) — ✅ TAMAMLANDI
+
+**Hedef:** Uygulama görevleri kullanıcının evine göre üretmeli ve bildirim saatini bilmeli.
+
+**Ekranlar:**
+
+1. Hoş geldin / kısa değer önerisi (1 ekran) ✅
+2. Ev bilgisi ✅
+   * Oda sayısı (1–10 arası)
+   * Oda isimleri (Combobox + custom text)
+   * Opsiyonel: banyo/mutfak gibi hazır şablon önerileri
+3. Müsait zaman aralığı ✅
+   * Örn: 19:00–22:00 (start/end)
+4. Günlük hedef süre ✅
+   * 10 dk / 15 dk seçimi (default 10)
+
+---
+
+### 1.2 Görev Kataloğu ve Etiketleme — ✅ TAMAMLANDI
+
+**Görev Kataloğu:** 25 görev tanımlandı
+* Süpürme (vacuum)
+* Silme (wipe)
+* Toparlama (tidy)
+* Çöp çıkarma (trash)
+* Bulaşık / tezgah düzeni (kitchen)
+* Çamaşır (laundry)
+* Banyo lavabo/ayna (bath)
+* Toz alma (dust)
+
+---
+
+### 1.3 Günlük Görev Seçimi (Akıllı Random) — ✅ TAMAMLANDI
+
+**Seçim Algoritması:**
+1. Bugün için görev yoksa oluştur ✅
+2. Son 1 gün içinde kullanılan room_id tekrar seçilmesin ✅
+3. Son 1 gün içinde kullanılan task_type tekrar seçilmesin ✅
+4. Kural gevşetme mantığı ✅
+5. Europe/Istanbul timezone desteği ✅
+
+---
+
+### 1.4 Görevin Sürprizli Sunumu — ✅ TAMAMLANDI
+
+* Ana ekranda "Bugünün sürprizi hazır 🎁" kartı ✅
+* "Aç" butonu ile görev açılır ✅
+* Görev kartı görünür ✅
+
+---
+
+### 1.5 Timer ile Başlatma — ✅ TAMAMLANDI
+
+* Start / Pause / Resume ✅
+* Countdown timer ✅
+* Progress ring ✅
+* Erken tamamlama seçeneği ✅
+
+---
+
+### 1.6 Görev Tamamlama "Temizleme" Mini Etkileşimi — ✅ TAMAMLANDI
+
+* "Basılı tut ve temizle" alanı ✅
+* Animasyon efekti ✅
+* Konfeti ✅
+* "Harika! Bugün tamamlandı" mesajı ✅
+
+---
+
+### 1.7 Ana Ekran Ev Görseli (Kirli → Temiz) — ✅ TAMAMLANDI
+
+* 5 seviye temizlik durumu (0–4) ✅
+* CustomPaint ile ev illustrasyonu ✅
+* Temizlik seviyesine göre renk değişimi ✅
+* Parıltı efekti (yüksek seviyelerde) ✅
+
+---
+
+### 1.8 Geçmiş / Takvim / Streak — ✅ TAMAMLANDI
+
+* Son 14 gün mini takvim (grid) ✅
+* Tamamlanan günler işaretli ✅
+* current_streak hesaplama ✅
+* best_streak hesaplama ✅
+
+---
+
+### 1.9 Bildirimler — ✅ TAMAMLANDI
+
+* flutter_local_notifications entegrasyonu ✅
+* İzin isteme akışı ✅
+* Günlük görev bildirimi zamanlama ✅
+* Motivasyon bildirimi ✅
+
+---
+
+### 1.10 Ayarlar — ✅ TAMAMLANDI
+
+* Odaları düzenle ✅
+* Günlük süre (10/15) ✅
+* Bildirim aç/kapa ✅
+* Ses aç/kapa ✅
+* Verileri sıfırla ✅
+
+---
+
+## 2) Teknik Mimari — ✅ GÜNCELLENDİ
+
+### 2.1 Frontend
+* Flutter ✅
+* State: Riverpod ✅
+* Routing: go_router ✅
+* Local cache: Hive ✅
+
+### 2.2 Backend — ✅ YENİ EKLENDİ
+* Supabase Edge Functions (API Layer) ✅
+  * /profile - Profil API
+  * /rooms - Oda API
+  * /tasks - Görev API
+* Auth middleware ✅
+* Input validation ✅
+* CORS handling ✅
+
+### 2.3 Authentication — ✅ YENİ EKLENDİ
+* Email ile kayıt/giriş ✅
+* Google OAuth ✅
+* Apple OAuth (iOS) ✅
+* Anonim giriş ✅
+
+---
+
+## 3) Veri Modeli (Supabase tabloları) — ✅ TAMAMLANDI
+
+### 3.1 users_profile ✅
+### 3.2 rooms ✅
+### 3.3 tasks_catalog (seed) ✅
+### 3.4 daily_tasks ✅
+
+---
+
+## 4) "Bitti" Denmesi İçin Checklist
+
+### 4.1 Kurulum & Çalıştırma
+* [x] Flutter proje ayağa kalkıyor (Android + iOS)
+* [x] Supabase project kurulmuş, env'ler (.env) ile bağlanıyor
+* [x] Backend API layer eklendi (Edge Functions)
+* [x] OAuth entegrasyonu yapıldı
+
+### 4.2 Onboarding
+* [x] İlk açılış onboarding'e gidiyor
+* [x] Oda sayısı + oda isimleri kaydoluyor
+* [x] Müsait saat aralığı kaydoluyor
+* [x] Günlük süre (10/15) seçimi kaydoluyor
+* [x] Onboarding bitince ana akış açılıyor
+
+### 4.3 Görev Kataloğu
+* [x] 25 görev seed edilmiş
+* [x] Görevlerin task_type + estimated_minutes + room_scope alanları var
+
+### 4.4 Günlük Görev Üretimi
+* [x] Her gün user için 1 daily_task oluşuyor
+* [x] Aynı oda ardışık gelmiyor
+* [x] Aynı task_type ardışık gelmiyor
+* [x] Kural gevşetme çalışıyor
+* [x] Europe/Istanbul timezone desteği
+
+### 4.5 Sürpriz Sunum
+* [x] "Aç" aksiyonu olmadan görev görünmüyor
+* [x] Açılınca görev kartı geliyor
+
+### 4.6 Timer
+* [x] Start/Pause/Resume çalışıyor
+* [x] Süre bitince "tamamla" yönlendirmesi
+
+### 4.7 Tamamlama Mini Etkileşim
+* [x] "Basılı tut ve temizle" çalışıyor
+* [x] Animasyon var
+* [x] Tamamlanınca status = completed
+
+### 4.8 Ana Ekran Ev Görseli
+* [x] Ev illustrasyonu var (CustomPaint)
+* [x] Temizlik seviyesine göre renk değişiyor
+* [x] Parıltı efekti var
+
+### 4.9 Takvim / Streak
+* [x] Son 14 gün görünümü var
+* [x] Tamamlanan günler işaretli
+* [x] Streak hesaplamaları doğru
+
+### 4.10 Bildirimler
+* [x] Görev bildirimi günlük atılabiliyor
+* [x] İzin yoksa crash olmuyor
+
+### 4.11 Ayarlar
+* [x] Oda düzenleme var
+* [x] Süre değiştirilebiliyor
+* [x] Ses aç/kapa
+* [x] Bildirim aç/kapa
+* [x] Verileri sıfırla çalışıyor
+
+### 4.12 Güvenlik (YENİ)
+* [x] API Layer (Edge Functions)
+* [x] Auth middleware
+* [x] Input validation
+* [x] RLS policies
+
+---
+
+## 5) Bekleyen/Eksik Özellikler
+
+### Deploy Gereksinimleri
+- [ ] Edge Functions deploy (supabase functions deploy)
+- [ ] OAuth provider yapılandırması (Google Cloud Console, Apple Developer)
+- [ ] Environment variables ayarları
+
+### Tamamlanan İyileştirmeler ✅
+- [x] App icons ve splash screen
+- [x] Ses efektleri (tamamlama, kutlama)
+- [x] Offline desteği (Hive cache)
+
+### Bekleyen İyileştirmeler
+- [ ] Provider'ları API service'e tam bağlama (Edge Functions deploy sonrası)
+- [ ] Push notifications (FCM)
+- [ ] Analytics
+
+---
+
+## 6) Dosya Yapısı
+
+```
+lib/
+├── core/
+│   ├── constants/
+│   ├── router/
+│   ├── services/
+│   │   ├── api_service.dart       ✅ YENİ
+│   │   ├── auth_service.dart      ✅ YENİ
+│   │   ├── local_storage_service.dart
+│   │   ├── notification_service.dart
+│   │   └── supabase_service.dart
+│   └── theme/
+├── features/
+│   ├── auth/                      ✅ YENİ
+│   │   ├── presentation/
+│   │   │   └── screens/
+│   │   │       └── login_screen.dart
+│   │   └── providers/
+│   │       └── auth_provider.dart
+│   ├── calendar/
+│   ├── home/
+│   ├── onboarding/
+│   ├── settings/
+│   └── timer/
+└── shared/
+
+supabase/
+├── functions/                     ✅ YENİ
+│   ├── _shared/
+│   │   ├── auth.ts
+│   │   ├── cors.ts
+│   │   ├── response.ts
+│   │   └── validation.ts
+│   ├── profile/
+│   │   └── index.ts
+│   ├── rooms/
+│   │   └── index.ts
+│   └── tasks/
+│       └── index.ts
+├── schema.sql
+└── seed.sql
+```
+
+---
+
+## 7) Test ve Dokümantasyon
+
+- TEST_CHECKLIST.md - 101 test maddesi içeren detaylı checklist
+- SETUP_GUIDE.md - Kurulum ve yapılandırma rehberi
+- PLAN_UPDATE.md - Detaylı güncelleme notları
+
+---
+
+*Son güncelleme: 2026-01-23*

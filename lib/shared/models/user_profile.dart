@@ -9,6 +9,7 @@ class UserProfile extends Equatable {
   final bool notificationsEnabled;
   final bool motivationEnabled;
   final bool soundEnabled;
+  final String preferredLanguage;
   final String timezone;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -21,6 +22,7 @@ class UserProfile extends Equatable {
     this.notificationsEnabled = true,
     this.motivationEnabled = true,
     this.soundEnabled = true,
+    this.preferredLanguage = 'tr',
     this.timezone = 'Europe/Istanbul',
     required this.createdAt,
     this.updatedAt,
@@ -44,6 +46,7 @@ class UserProfile extends Equatable {
       notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
       motivationEnabled: json['motivation_enabled'] as bool? ?? true,
       soundEnabled: json['sound_enabled'] as bool? ?? true,
+      preferredLanguage: json['preferred_language'] as String? ?? 'tr',
       timezone: json['timezone'] as String? ?? 'Europe/Istanbul',
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: json['updated_at'] != null
@@ -62,6 +65,7 @@ class UserProfile extends Equatable {
       'notifications_enabled': notificationsEnabled,
       'motivation_enabled': motivationEnabled,
       'sound_enabled': soundEnabled,
+      'preferred_language': preferredLanguage,
       'timezone': timezone,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
@@ -77,6 +81,7 @@ class UserProfile extends Equatable {
     bool? notificationsEnabled,
     bool? motivationEnabled,
     bool? soundEnabled,
+    String? preferredLanguage,
     String? timezone,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -89,6 +94,7 @@ class UserProfile extends Equatable {
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       motivationEnabled: motivationEnabled ?? this.motivationEnabled,
       soundEnabled: soundEnabled ?? this.soundEnabled,
+      preferredLanguage: preferredLanguage ?? this.preferredLanguage,
       timezone: timezone ?? this.timezone,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -104,6 +110,7 @@ class UserProfile extends Equatable {
         notificationsEnabled,
         motivationEnabled,
         soundEnabled,
+        preferredLanguage,
         timezone,
         createdAt,
         updatedAt,

@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/services/local_storage_service.dart';
 import '../../../core/services/supabase_service.dart';
 
@@ -95,11 +95,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
           .map((e) => e['name'] as String)
           .toList();
 
-      // Local storage'dan ses ayarını al
-      final soundEnabled = LocalStorageService.getSetting<bool>(
-        AppConstants.soundEnabledKey,
-        defaultValue: true,
-      ) ?? true;
+      // Ses ayarını Supabase'den al (local storage yerine)
+      final soundEnabled = profileResponse?['sound_enabled'] as bool? ?? true;
 
       state = state.copyWith(
         isLoading: false,
@@ -205,8 +202,25 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   /// Ses ayarını değiştir
   Future<void> setSoundEnabled(bool enabled) async {
-    await LocalStorageService.saveSetting(AppConstants.soundEnabledKey, enabled);
-    state = state.copyWith(soundEnabled: enabled);
+    try {
+      final userId = SupabaseService.currentUser?.id;
+      if (userId == null) return;
+
+      // Supabase'e kaydet
+      await SupabaseService.client
+          .from('users_profile')
+          .update({'sound_enabled': enabled})
+          .eq('user_id', userId);
+
+      // State güncelle
+      state = state.copyWith(soundEnabled: enabled);
+      
+      debugPrint('setSoundEnabled: Saved to Supabase: $enabled');
+    } catch (e) {
+      debugPrint('setSoundEnabled ERROR: $e');
+      // Hata olsa bile state'i güncelle (offline mod)
+      state = state.copyWith(soundEnabled: enabled);
+    }
   }
 
   /// Bildirim saatini ayarla

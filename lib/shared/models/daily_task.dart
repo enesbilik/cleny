@@ -16,6 +16,7 @@ class DailyTask extends Equatable {
   final String? roomId;
   final DailyTaskStatus status;
   final DateTime assignedAt;
+  final DateTime? revealedAt;
   final DateTime? completedAt;
   final String? completionMethod;
   final int? durationSeconds;
@@ -28,6 +29,7 @@ class DailyTask extends Equatable {
     this.roomId,
     this.status = DailyTaskStatus.assigned,
     required this.assignedAt,
+    this.revealedAt,
     this.completedAt,
     this.completionMethod,
     this.durationSeconds,
@@ -42,6 +44,9 @@ class DailyTask extends Equatable {
   /// Görev beklemede mi?
   bool get isPending => status == DailyTaskStatus.assigned;
 
+  /// Görev açıldı mı?
+  bool get isRevealed => revealedAt != null;
+
   /// JSON'dan oluştur
   factory DailyTask.fromJson(Map<String, dynamic> json) {
     return DailyTask(
@@ -55,6 +60,9 @@ class DailyTask extends Equatable {
         orElse: () => DailyTaskStatus.assigned,
       ),
       assignedAt: DateTime.parse(json['assigned_at'] as String),
+      revealedAt: json['revealed_at'] != null
+          ? DateTime.parse(json['revealed_at'] as String)
+          : null,
       completedAt: json['completed_at'] != null
           ? DateTime.parse(json['completed_at'] as String)
           : null,
@@ -73,6 +81,7 @@ class DailyTask extends Equatable {
       'room_id': roomId,
       'status': status.name,
       'assigned_at': assignedAt.toIso8601String(),
+      'revealed_at': revealedAt?.toIso8601String(),
       'completed_at': completedAt?.toIso8601String(),
       'completion_method': completionMethod,
       'duration_seconds': durationSeconds,
@@ -88,6 +97,7 @@ class DailyTask extends Equatable {
     String? roomId,
     DailyTaskStatus? status,
     DateTime? assignedAt,
+    DateTime? revealedAt,
     DateTime? completedAt,
     String? completionMethod,
     int? durationSeconds,
@@ -100,6 +110,7 @@ class DailyTask extends Equatable {
       roomId: roomId ?? this.roomId,
       status: status ?? this.status,
       assignedAt: assignedAt ?? this.assignedAt,
+      revealedAt: revealedAt ?? this.revealedAt,
       completedAt: completedAt ?? this.completedAt,
       completionMethod: completionMethod ?? this.completionMethod,
       durationSeconds: durationSeconds ?? this.durationSeconds,
@@ -115,6 +126,7 @@ class DailyTask extends Equatable {
         roomId,
         status,
         assignedAt,
+        revealedAt,
         completedAt,
         completionMethod,
         durationSeconds,

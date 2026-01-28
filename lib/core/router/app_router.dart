@@ -13,8 +13,8 @@ import '../../features/timer/presentation/screens/completion_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../shared/providers/app_state_provider.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/presentation/screens/splash_screen.dart';
 
 /// Route isimleri
 class AppRoutes {
@@ -35,61 +35,43 @@ class AppRoutes {
 }
 
 /// Router provider
+/// NOT: ref.watch yerine ref.read kullanıyoruz çünkü router'ın sürekli yeniden oluşturulmasını istemiyoruz
+/// Splash screen kendi yönlendirmesini yapıyor, bu yüzden redirect'i minimal tutuyoruz
 final routerProvider = Provider<GoRouter>((ref) {
-  final appState = ref.watch(appStateProvider);
+  // ref.watch yerine ref.read kullan - router'ı sürekli yeniden oluşturma
+  // Sadece gerekli durumlarda redirect yap
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: false, // Log spam'ini azalt
     redirect: (context, state) {
       final isAuthenticated = authService.isAuthenticated;
-      final isOnboardingCompleted = appState.isOnboardingCompleted;
-      final isGoingToOnboarding = state.matchedLocation.startsWith('/onboarding') ||
-          state.matchedLocation == AppRoutes.welcome;
       final isGoingToLogin = state.matchedLocation == AppRoutes.login;
+      final isGoingToSplash = state.matchedLocation == AppRoutes.splash;
 
-      // Splash'tan yönlendirme
-      if (state.matchedLocation == AppRoutes.splash) {
-        if (!isAuthenticated) {
-          return AppRoutes.login;
-        } else if (isOnboardingCompleted) {
-          return AppRoutes.home;
-        } else {
-          return AppRoutes.welcome;
-        }
+      // Splash screen kendi yönlendirmesini yapıyor, redirect yapma
+      if (isGoingToSplash) {
+        return null;
       }
 
-      // Auth olmadan sadece login sayfasına erişilebilir
-      if (!isAuthenticated && !isGoingToLogin) {
+      // Auth olmadan sadece login ve splash sayfalarına erişilebilir
+      if (!isAuthenticated && !isGoingToLogin && !isGoingToSplash) {
         return AppRoutes.login;
       }
 
-      // Auth varsa login'e gitmeye çalışırsa yönlendir
+      // Auth varsa login'e gitmeye çalışırsa splash'e yönlendir (splash kendi yönlendirmesini yapar)
       if (isAuthenticated && isGoingToLogin) {
-        if (isOnboardingCompleted) {
-          return AppRoutes.home;
-        } else {
-          return AppRoutes.welcome;
-        }
+        return AppRoutes.splash;
       }
 
-      // Onboarding tamamlanmamışsa onboarding'e yönlendir
-      if (isAuthenticated && !isOnboardingCompleted && !isGoingToOnboarding) {
-        return AppRoutes.welcome;
-      }
-
-      // Onboarding tamamlanmışsa ve onboarding sayfasına gidiyorsa ana sayfaya yönlendir
-      if (isOnboardingCompleted && isGoingToOnboarding) {
-        return AppRoutes.home;
-      }
-
+      // Diğer durumlar için splash screen kendi yönlendirmesini yapacak
       return null;
     },
     routes: [
       // Splash
       GoRoute(
         path: AppRoutes.splash,
-        builder: (context, state) => const _SplashScreen(),
+        builder: (context, state) => const SplashScreen(),
       ),
 
       // Login
@@ -162,17 +144,4 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Basit splash ekranı
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-}
 

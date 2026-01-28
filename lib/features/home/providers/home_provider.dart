@@ -115,6 +115,10 @@ class HomeNotifier extends StateNotifier<HomeState> {
         if (cachedData != null) {
           state = state.copyWith(
             isLoading: false,
+            todayTask: cachedData['todayTask'] as DailyTask?,
+            taskCatalog: cachedData['taskCatalog'] as TaskCatalog?,
+            taskRoom: cachedData['taskRoom'] as Room?,
+            isTaskRevealed: cachedData['isTaskRevealed'] as bool? ?? false,
             currentStreak: cachedData['currentStreak'] as int,
             bestStreak: cachedData['bestStreak'] as int,
             totalCompleted: cachedData['totalCompleted'] as int,
@@ -177,6 +181,50 @@ class HomeNotifier extends StateNotifier<HomeState> {
       roomName: item['roomName'],
     )).toList();
 
+    // Bugünün görevini cache'den yükle
+    DailyTask? todayTask;
+    TaskCatalog? taskCatalog;
+    Room? taskRoom;
+    bool isTaskRevealed = false;
+
+    final cachedTodayTask = cacheService.getCachedTodayTask();
+    if (cachedTodayTask != null) {
+      try {
+        todayTask = DailyTask.fromJson(cachedTodayTask);
+        isTaskRevealed = todayTask.isRevealed;
+        
+        // Görev kataloğunu yükle
+        if (todayTask.taskCatalogId.isNotEmpty) {
+          final cachedCatalog = cacheService.getCachedTasksCatalog();
+          if (cachedCatalog != null) {
+            final catalogItem = cachedCatalog.firstWhere(
+              (item) => item['id'] == todayTask!.taskCatalogId,
+              orElse: () => {},
+            );
+            if (catalogItem.isNotEmpty) {
+              taskCatalog = TaskCatalog.fromJson(catalogItem);
+            }
+          }
+        }
+
+        // Odayı yükle
+        if (todayTask.roomId != null && todayTask.roomId!.isNotEmpty) {
+          final cachedRooms = cacheService.getCachedRooms();
+          if (cachedRooms != null) {
+            final roomItem = cachedRooms.firstWhere(
+              (item) => item['id'] == todayTask!.roomId,
+              orElse: () => {},
+            );
+            if (roomItem.isNotEmpty) {
+              taskRoom = Room.fromJson(roomItem);
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Cache parse error: $e');
+      }
+    }
+
     return {
       'currentStreak': cachedStats['current'] ?? 0,
       'bestStreak': cachedStats['best'] ?? 0,
@@ -184,6 +232,10 @@ class HomeNotifier extends StateNotifier<HomeState> {
       'cleanlinessLevel': cachedStats['cleanlinessLevel'] ?? 0,
       'completedDates': completedDates,
       'recentCleans': recentCleans,
+      'todayTask': todayTask,
+      'taskCatalog': taskCatalog,
+      'taskRoom': taskRoom,
+      'isTaskRevealed': isTaskRevealed,
     };
   }
 
@@ -231,7 +283,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
         todayTask: todayTask,
         taskCatalog: taskCatalog,
         taskRoom: taskRoom,
-        isTaskRevealed: todayTask?.isCompleted == true,
+        isTaskRevealed: todayTask?.isRevealed ?? false,
         cleanlinessLevel: cleanlinessLevel,
         currentStreak: statsData['current'] ?? 0,
         bestStreak: statsData['best'] ?? 0,
@@ -245,7 +297,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
         todayTask: todayTask,
         taskCatalog: taskCatalog,
         taskRoom: taskRoom,
-        isTaskRevealed: todayTask?.isCompleted == true,
+        isTaskRevealed: todayTask?.isRevealed ?? false,
         cleanlinessLevel: cleanlinessLevel,
         currentStreak: statsData['current'] ?? 0,
         bestStreak: statsData['best'] ?? 0,
@@ -288,9 +340,35 @@ class HomeNotifier extends StateNotifier<HomeState> {
     await cacheService.setLastSync();
   }
 
-  /// Görevi açığa çıkar
+  /// Görevi açığa çıkar (Supabase'e kaydet)
   Future<void> revealTask() async {
-    state = state.copyWith(isTaskRevealed: true);
+    if (state.todayTask == null) {
+      debugPrint('revealTask: todayTask is null');
+      return;
+    }
+
+    try {
+      final now = DateTime.now();
+      
+      // Supabase'e revealed_at'i kaydet
+      await SupabaseService.client
+          .from('daily_tasks')
+          .update({'revealed_at': now.toIso8601String()})
+          .eq('id', state.todayTask!.id);
+
+      // State güncelle
+      final updatedTask = state.todayTask!.copyWith(revealedAt: now);
+      state = state.copyWith(
+        todayTask: updatedTask,
+        isTaskRevealed: true,
+      );
+
+      debugPrint('revealTask: Task revealed and saved to Supabase');
+    } catch (e) {
+      debugPrint('revealTask ERROR: $e');
+      // Hata olsa bile state'i güncelle (offline mod)
+      state = state.copyWith(isTaskRevealed: true);
+    }
   }
 
   /// Görevi tamamla

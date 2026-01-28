@@ -92,6 +92,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
         notificationsEnabled: true,
         motivationEnabled: true,
         soundEnabled: true,
+        preferredLanguage: 'tr', // Varsayılan Türkçe
         timezone: AppConstants.defaultTimezone,
         createdAt: now,
       );

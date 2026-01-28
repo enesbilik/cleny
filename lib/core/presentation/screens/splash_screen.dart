@@ -1,0 +1,231 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../router/app_router.dart';
+import '../../theme/app_colors.dart';
+import '../../../features/home/providers/home_provider.dart';
+import '../../../features/settings/providers/settings_provider.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../../shared/providers/app_state_provider.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/onesignal_service.dart';
+
+/// Custom Splash Screen - Veri yükleme ile
+class SplashScreen extends ConsumerStatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends ConsumerState<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+  bool _hasNavigated = false; // Navigate flag - sadece bir kez navigate et
+  bool _isLoading = false; // Loading flag - çoklu çağrıları önle
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Animasyon controller
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOutBack,
+      ),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _controller.forward();
+    
+    // Veri yükleme ve yönlendirme
+    _loadDataAndNavigate();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadDataAndNavigate() async {
+    // Eğer zaten navigate edildiyse veya loading başladıysa, tekrar çalıştırma
+    if (_hasNavigated || _isLoading) {
+      debugPrint('Splash: Already navigated or loading, skipping...');
+      return;
+    }
+
+    _isLoading = true;
+
+    try {
+      // Minimum bekleme süresi (animasyon için)
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      if (!mounted || _hasNavigated) return;
+
+      final isAuthenticated = authService.isAuthenticated;
+
+      if (!isAuthenticated) {
+        // Login sayfasına yönlendir
+        if (mounted && !_hasNavigated) {
+          _hasNavigated = true;
+          context.go(AppRoutes.login);
+        }
+        return;
+      }
+
+      // Kullanıcı giriş yapmışsa verileri yükle
+      // 1. Onboarding durumunu kontrol et
+      if (!mounted || _hasNavigated) return;
+      await ref.read(appStateProvider.notifier).checkOnboardingFromSupabase();
+      
+      if (!mounted || _hasNavigated) return;
+      final appState = ref.read(appStateProvider);
+      
+      if (!appState.isOnboardingCompleted) {
+        // Onboarding tamamlanmamış
+        if (mounted && !_hasNavigated) {
+          _hasNavigated = true;
+          context.go(AppRoutes.welcome);
+        }
+        return;
+      }
+
+      // 2. Locale'i yükle (Supabase'den)
+      if (!mounted || _hasNavigated) return;
+      await ref.read(localeProvider.notifier).loadLocale();
+
+      // 3. Settings verilerini yükle
+      if (!mounted || _hasNavigated) return;
+      await ref.read(settingsProvider.notifier).refresh();
+
+      // 4. Home verilerini yükle (görev durumu dahil) - TAM YÜKLENENE KADAR BEKLE
+      if (!mounted || _hasNavigated) return;
+      await ref.read(homeProvider.notifier).loadData(forceRefresh: false);
+      
+      // Home state'in yüklendiğinden emin ol (isLoading false olana kadar bekle)
+      int retryCount = 0;
+      while (retryCount < 20) { // Max 2 saniye bekle
+        if (!mounted || _hasNavigated) return;
+        final homeState = ref.read(homeProvider);
+        if (!homeState.isLoading) {
+          debugPrint('Splash: Home data loaded successfully');
+          break;
+        }
+        await Future.delayed(const Duration(milliseconds: 100));
+        retryCount++;
+      }
+
+      // 5. OneSignal sync (push notifications için)
+      if (!mounted || _hasNavigated) return;
+      await OneSignalService.syncCurrentUser();
+      if (!mounted || _hasNavigated) return;
+      await OneSignalService.updateLastActive();
+
+      // Minimum bekleme süresi (smooth transition için)
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // 6. Home ekranına yönlendir
+      if (mounted && !_hasNavigated) {
+        _hasNavigated = true;
+        context.go(AppRoutes.home);
+      }
+    } catch (e) {
+      debugPrint('Splash screen data loading error: $e');
+      // Hata durumunda da home'a git (cache'den yükler)
+      if (mounted && !_hasNavigated) {
+        _hasNavigated = true;
+        context.go(AppRoutes.home);
+      }
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.primary,
+      body: SafeArea(
+        child: Center(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Opacity(
+                opacity: _fadeAnimation.value,
+                child: Transform.scale(
+                  scale: _scaleAnimation.value,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo/Icon
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.cleaning_services_rounded,
+                          size: 70,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // App Name
+                      Text(
+                        'CleanLoop',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      
+                      // Loading Indicator
+                      const SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          strokeWidth: 3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
