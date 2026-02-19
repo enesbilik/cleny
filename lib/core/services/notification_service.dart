@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 const int _kTimerId = 100;
-const int _kTestInstantId = 999;
 
 /// Bildirim servisi — singleton
 ///
@@ -24,15 +23,6 @@ class NotificationService {
     'timer',
     'Timer',
     channelDescription: 'Timer tamamlanma bildirimleri',
-    importance: Importance.high,
-    priority: Priority.high,
-    icon: '@mipmap/ic_launcher',
-  );
-
-  static const _testChannel = AndroidNotificationDetails(
-    'test',
-    'Test',
-    channelDescription: 'Test bildirimleri',
     importance: Importance.high,
     priority: Priority.high,
     icon: '@mipmap/ic_launcher',
@@ -118,17 +108,6 @@ class NotificationService {
       'Görevini tamamlamak için uygulamaya dön.',
       NotificationDetails(android: _timerChannel, iOS: _iosDefault),
     );
-  }
-
-  /// Anında görünen test bildirimi.
-  Future<void> showTestNotification() async {
-    await _notifications.show(
-      _kTestInstantId,
-      'Test Bildirimi 🧪',
-      'Bildirimler çalışıyor! Harika!',
-      NotificationDetails(android: _testChannel, iOS: _iosDefault),
-    );
-    debugPrint('Test bildirimi gönderildi ✅');
   }
 
   Future<void> cancelAllNotifications() async => _notifications.cancelAll();

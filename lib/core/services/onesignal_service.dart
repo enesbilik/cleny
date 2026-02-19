@@ -74,10 +74,7 @@ class OneSignalService {
 
   /// Streak bilgisini güncelle (segmentation için)
   static Future<void> updateStreakTag(int streak) async {
-    await setUserTags({
-      'streak': streak.toString(),
-      'streak_group': _getStreakGroup(streak),
-    });
+    await setUserTags({'streak': streak.toString()});
   }
 
   /// Görev durumunu güncelle
@@ -85,34 +82,15 @@ class OneSignalService {
     required bool completedToday,
     required int totalCompleted,
   }) async {
-    await setUserTags({
-      'completed_today': completedToday ? 'yes' : 'no',
-      'total_completed': totalCompleted.toString(),
-    });
+    await setUserTags({'completed_today': completedToday ? 'yes' : 'no'});
   }
 
   /// Son aktif zamanı güncelle
   static Future<void> updateLastActive() async {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     await setUserTags({
       'last_active_date': '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
-      'last_active_hour': now.hour.toString(),
-      // Segment filtreleri için: kaç gün önce aktifti (0 = bugün)
-      'days_since_active': '0',
-      // Kayıt tarihi (ilk kurulumda set edilir, sonradan değişmez)
-      'first_seen_date': '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}',
     });
-  }
-
-  /// Streak grubunu belirle
-  static String _getStreakGroup(int streak) {
-    if (streak == 0) return 'inactive';
-    if (streak < 3) return 'beginner';
-    if (streak < 7) return 'regular';
-    if (streak < 14) return 'committed';
-    if (streak < 30) return 'dedicated';
-    return 'champion';
   }
 
   /// Mevcut kullanıcı ID'sini al ve OneSignal'a kaydet

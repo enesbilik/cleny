@@ -3,7 +3,7 @@ class AppConstants {
   AppConstants._();
 
   // App Info
-  static const String appName = 'CleanLoop';
+  static const String appName = 'Cleny';
   static const String appVersion = '1.0.0';
 
   // Onboarding

@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// The app name
   ///
   /// In en, this message translates to:
-  /// **'CleanLoop'**
+  /// **'Cleny'**
   String get appTitle;
 
   /// No description provided for @welcome.

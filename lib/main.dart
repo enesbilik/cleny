@@ -75,7 +75,7 @@ class CleanLoopApp extends ConsumerWidget {
 
     return MaterialApp.router(
       key: ValueKey(locale.languageCode), // Locale değiştiğinde rebuild zorla
-      title: 'CleanLoop',
+      title: 'Cleny',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: router,

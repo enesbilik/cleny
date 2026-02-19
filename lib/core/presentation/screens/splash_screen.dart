@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../router/app_router.dart';
-import '../../theme/app_colors.dart';
 import '../../../features/home/providers/home_provider.dart';
 import '../../../features/settings/providers/settings_provider.dart';
 import '../../../core/providers/locale_provider.dart';
@@ -75,8 +74,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _isLoading = true;
 
     try {
-      // Minimum bekleme süresi (animasyon için) - Lottie'nin en az 1 döngü tamamlaması için
-      await Future.delayed(const Duration(milliseconds: 1800));
+      // Minimum bekleme süresi (animasyon gözükebilsin diye)
+      await Future.delayed(const Duration(milliseconds: 800));
       
       if (!mounted || _hasNavigated) return;
 
@@ -120,27 +119,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (!mounted || _hasNavigated) return;
       await ref.read(homeProvider.notifier).loadData(forceRefresh: false);
       
-      // Home state'in yüklendiğinden emin ol (isLoading false olana kadar bekle)
+      // isLoading VE isRefreshing bitene kadar bekle (max 8 saniye)
+      // isRefreshing: cache'den hızlı yüklendi, arka planda network refresh devam ediyor
       int retryCount = 0;
-      while (retryCount < 20) { // Max 2 saniye bekle
+      while (retryCount < 80) {
         if (!mounted || _hasNavigated) return;
         final homeState = ref.read(homeProvider);
-        if (!homeState.isLoading) {
-          debugPrint('Splash: Home data loaded successfully');
+        if (!homeState.isLoading && !homeState.isRefreshing) {
+          debugPrint('Splash: Home data fully loaded (cache + network)');
           break;
         }
         await Future.delayed(const Duration(milliseconds: 100));
         retryCount++;
       }
 
-      // 5. OneSignal sync (push notifications için)
-      if (!mounted || _hasNavigated) return;
-      await OneSignalService.syncCurrentUser();
-      if (!mounted || _hasNavigated) return;
-      await OneSignalService.updateLastActive();
-
-      // Minimum bekleme süresi (smooth transition için)
-      await Future.delayed(const Duration(milliseconds: 300));
+      // 5. OneSignal sync — navigasyonu bekletmeden arka planda çalıştır
+      unawaited(OneSignalService.syncCurrentUser());
+      unawaited(OneSignalService.updateLastActive());
 
       // 6. Home ekranına yönlendir
       if (mounted && !_hasNavigated) {

@@ -28,6 +28,7 @@ class CompletedTask {
 /// Home durumu
 class HomeState {
   final bool isLoading;
+  final bool isRefreshing;
   final DailyTask? todayTask;
   final TaskCatalog? taskCatalog;
   final Room? taskRoom;
@@ -45,6 +46,7 @@ class HomeState {
 
   const HomeState({
     this.isLoading = true,
+    this.isRefreshing = false,
     this.todayTask,
     this.taskCatalog,
     this.taskRoom,
@@ -88,6 +90,7 @@ class HomeState {
 
   HomeState copyWith({
     bool? isLoading,
+    bool? isRefreshing,
     DailyTask? todayTask,
     TaskCatalog? taskCatalog,
     Room? taskRoom,
@@ -104,6 +107,7 @@ class HomeState {
   }) {
     return HomeState(
       isLoading: isLoading ?? this.isLoading,
+      isRefreshing: isRefreshing ?? this.isRefreshing,
       todayTask: todayTask ?? this.todayTask,
       taskCatalog: taskCatalog ?? this.taskCatalog,
       taskRoom: taskRoom ?? this.taskRoom,
@@ -150,6 +154,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
         if (cachedData != null) {
           state = state.copyWith(
             isLoading: false,
+            isRefreshing: true,
             todayTask: cachedData['todayTask'] as DailyTask?,
             taskCatalog: cachedData['taskCatalog'] as TaskCatalog?,
             taskRoom: cachedData['taskRoom'] as Room?,
@@ -161,7 +166,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
             completedDates: cachedData['completedDates'] as Set<DateTime>,
             recentCleans: cachedData['recentCleans'] as List<CompletedTask>,
           );
-          // Arka planda güncelleme yap
+          // Arka planda ağ verisiyle güncelle
           _refreshInBackground(userId);
           return;
         }
@@ -280,6 +285,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
       await _loadFromNetwork(userId, silent: true);
     } catch (e) {
       debugPrint('Background refresh failed: $e');
+      state = state.copyWith(isRefreshing: false);
     }
   }
 
@@ -318,6 +324,7 @@ class HomeNotifier extends StateNotifier<HomeState> {
 
     final newState = state.copyWith(
       isLoading: silent ? null : false,
+      isRefreshing: false,
       todayTask: todayTask,
       taskCatalog: taskCatalog,
       taskRoom: taskRoom,

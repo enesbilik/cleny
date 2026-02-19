@@ -391,7 +391,6 @@ class _Logo extends StatelessWidget {
       width: 80,
       height: 80,
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -401,10 +400,13 @@ class _Logo extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(
-        Icons.home_rounded,
-        size: 40,
-        color: Colors.white,
+      child: ClipOval(
+        child: Image.asset(
+          'assets/icon/app_icon.png',
+          width: 80,
+          height: 80,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }

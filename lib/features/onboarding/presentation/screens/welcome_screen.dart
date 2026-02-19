@@ -208,7 +208,6 @@ class _LogoSection extends StatelessWidget {
           width: 110,
           height: 110,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
@@ -218,10 +217,13 @@ class _LogoSection extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(
-            Icons.home_rounded,
-            size: 52,
-            color: Colors.white,
+          child: ClipOval(
+            child: Image.asset(
+              'assets/icon/app_icon.png',
+              width: 110,
+              height: 110,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         // Dekoratif elementler
