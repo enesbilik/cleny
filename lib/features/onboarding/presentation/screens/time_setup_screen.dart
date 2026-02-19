@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../../shared/providers/app_state_provider.dart';
 import '../../providers/onboarding_provider.dart';
 
 /// Zaman aralığı seçim ekranı
@@ -79,14 +81,22 @@ class _TimeSetupScreenState extends ConsumerState<TimeSetupScreen> {
     return '$hour:$minute';
   }
 
-  void _continue() {
-    // Saatleri provider'a kaydet
-    ref.read(onboardingProvider.notifier).setAvailableTime(
+  Future<void> _continue() async {
+    final onboardingNotifier = ref.read(onboardingProvider.notifier);
+
+    onboardingNotifier.setAvailableTime(
       start: _formatTime(_startTime),
       end: _formatTime(_endTime),
     );
 
-    context.go(AppRoutes.durationSetup);
+    onboardingNotifier.setPreferredMinutes(AppConstants.defaultTaskDuration);
+
+    await onboardingNotifier.saveOnboardingData();
+    await ref.read(appStateProvider.notifier).completeOnboarding();
+
+    if (mounted) {
+      context.go(AppRoutes.home);
+    }
   }
 
   @override
@@ -125,13 +135,13 @@ class _TimeSetupScreenState extends ConsumerState<TimeSetupScreen> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: AppColors.secondaryLight.withValues(alpha: 0.2),
+                    color: AppColors.primaryLight.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.schedule,
                     size: 48,
-                    color: AppColors.secondary,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -197,8 +207,17 @@ class _TimeSetupScreenState extends ConsumerState<TimeSetupScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _continue,
-                  child: Text(l10n.continueButton),
+                  onPressed: ref.watch(onboardingProvider).isLoading ? null : _continue,
+                  child: ref.watch(onboardingProvider).isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(l10n.startCleaning),
                 ),
               ),
             ],

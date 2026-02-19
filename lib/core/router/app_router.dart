@@ -6,7 +6,6 @@ import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../../features/onboarding/presentation/screens/room_setup_screen.dart';
 import '../../features/onboarding/presentation/screens/time_setup_screen.dart';
-import '../../features/onboarding/presentation/screens/duration_setup_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/timer/presentation/screens/timer_screen.dart';
 import '../../features/timer/presentation/screens/completion_screen.dart';
@@ -26,7 +25,6 @@ class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String roomSetup = '/onboarding/rooms';
   static const String timeSetup = '/onboarding/time';
-  static const String durationSetup = '/onboarding/duration';
   static const String home = '/home';
   static const String timer = '/timer';
   static const String completion = '/completion';
@@ -98,10 +96,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'time',
             builder: (context, state) => const TimeSetupScreen(),
-          ),
-          GoRoute(
-            path: 'duration',
-            builder: (context, state) => const DurationSetupScreen(),
           ),
         ],
       ),

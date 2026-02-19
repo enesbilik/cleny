@@ -315,7 +315,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newSurpriseDaily => 'A new surprise every day';
 
   @override
-  String get streakMotivation => 'One day at a time, reflected in your home 🏠';
+  String get streakMotivation => 'Keep your streak, boost your motivation';
 
   @override
   String helloUser(String name) {
@@ -701,4 +701,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get taskBlacklistedMessage =>
       'Got it! We\'ll pick a different task for you tomorrow 👍';
+
+  @override
+  String get todaysSummary => 'Today\'s Summary';
+
+  @override
+  String get totalCleans => 'Total';
+
+  @override
+  String get last7Days => 'Last 7 Days';
+
+  @override
+  String cleanDays(int count) {
+    return '$count clean days';
+  }
+
+  @override
+  String get dailyTipTitle => 'Daily Tip';
+
+  @override
+  String get dailyTip1 =>
+      'Wiping the counter before bed makes your morning better';
+
+  @override
+  String get dailyTip2 => 'Assign a place for everything, tidying gets easier';
+
+  @override
+  String get dailyTip3 => 'Taking shoes off at the door keeps your home clean';
+
+  @override
+  String get dailyTip4 => 'Replace the trash bag right away, don\'t postpone';
+
+  @override
+  String get dailyTip5 => 'Wash the dishes immediately, prevent piling up';
+
+  @override
+  String get wellDoneToday => 'Great work today!';
+
+  @override
+  String get yourHomeIsGettingBetter => 'Your home is getting better every day';
 }

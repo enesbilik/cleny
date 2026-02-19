@@ -115,7 +115,7 @@
   "onlyTenMinutesDaily": "Günde sadece 15 dakika ile\nevinizi düzenli tutun",
   "microTasksBigDifference": "Mikro görevler, büyük fark",
   "newSurpriseDaily": "Her gün yeni bir sürpriz",
-  "streakMotivation": "Her gün bir adım, evine yansır 🏠",
+  "streakMotivation": "Serini koru, motivasyonunu artır",
   
   "helloUser": "Merhaba, {name}! 👋",
   "hello": "Merhaba! 👋",
@@ -252,5 +252,18 @@
   "notificationPermissionOpenSettings": "Ayarlar",
 
   "neverShowThisTask": "Bu görevi bir daha gösterme",
-  "taskBlacklistedMessage": "Anladık! Yarın sana farklı bir görev seçeceğiz 👍"
+  "taskBlacklistedMessage": "Anladık! Yarın sana farklı bir görev seçeceğiz 👍",
+
+  "todaysSummary": "Bugünün Özeti",
+  "totalCleans": "Toplam",
+  "last7Days": "Son 7 Gün",
+  "cleanDays": "{count} gün temiz",
+  "dailyTipTitle": "Günün İpucu",
+  "dailyTip1": "Yatmadan önce tezgahı silmek sabahı güzelleştirir",
+  "dailyTip2": "Her eşyaya bir yer belirle, toparlamak kolaylaşır",
+  "dailyTip3": "Ayakkabıları kapıda çıkarmak evi temiz tutar",
+  "dailyTip4": "Çöp poşetini hemen değiştir, erteleme",
+  "dailyTip5": "Bulaşıkları hemen yıka, birikmesini önle",
+  "wellDoneToday": "Bugün harika iş çıkardın!",
+  "yourHomeIsGettingBetter": "Evin gün geçtikçe daha güzel oluyor"
 }

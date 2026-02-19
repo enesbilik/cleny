@@ -10,6 +10,7 @@ import '../../../../shared/providers/app_state_provider.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../providers/settings_provider.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/onesignal_service.dart';
 
@@ -78,7 +79,7 @@ class SettingsContent extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        l10n.roomsCountDuration(settingsState.roomCount, settingsState.preferredMinutes),
+                        l10n.roomsCount(settingsState.roomCount),
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 14,
@@ -106,13 +107,6 @@ class SettingsContent extends ConsumerWidget {
               ),
               const Divider(height: 1),
               _SettingsTile(
-                icon: Icons.timer_outlined,
-                title: l10n.dailyDuration,
-                subtitle: l10n.minutesDuration(settingsState.preferredMinutes),
-                onTap: () => _showDurationDialog(context, ref),
-              ),
-              const Divider(height: 1),
-              _SettingsTile(
                 icon: Icons.schedule_outlined,
                 title: l10n.notificationTime,
                 subtitle: '${settingsState.availableStart} - ${settingsState.availableEnd}',
@@ -135,16 +129,6 @@ class SettingsContent extends ConsumerWidget {
                 value: settingsState.notificationsEnabled,
                 onChanged: (value) {
                   ref.read(settingsProvider.notifier).setNotificationsEnabled(value);
-                },
-              ),
-              const Divider(height: 1),
-              _SettingsSwitch(
-                icon: Icons.lightbulb_outline,
-                title: l10n.motivationalMessages,
-                subtitle: l10n.dailyMotivationNotifications,
-                value: settingsState.motivationEnabled,
-                onChanged: (value) {
-                  ref.read(settingsProvider.notifier).setMotivationEnabled(value);
                 },
               ),
             ],
@@ -170,6 +154,13 @@ class SettingsContent extends ConsumerWidget {
               _LanguageTile(ref: ref),
             ],
           ),
+
+          const SizedBox(height: 24),
+
+          // Bildirim Testi
+          _SectionHeader(title: 'Bildirim Testi'),
+          const SizedBox(height: 12),
+          _NotificationTestCard(settingsState: settingsState),
 
           const SizedBox(height: 24),
 
@@ -226,98 +217,6 @@ class SettingsContent extends ConsumerWidget {
         onSave: (updatedRooms) {
           settingsNotifier.updateRooms(updatedRooms);
         },
-      ),
-    );
-  }
-
-  void _showDurationDialog(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final settingsNotifier = ref.read(settingsProvider.notifier);
-    final currentDuration = ref.read(settingsProvider).preferredMinutes;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.dailyDuration,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.dailyDurationQuestion,
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [10, 15].map((duration) {
-                final isSelected = currentDuration == duration;
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right: duration == 10 ? 8 : 0,
-                      left: duration == 15 ? 8 : 0,
-                    ),
-                    child: GestureDetector(
-                      onTap: () {
-                        settingsNotifier.setPreferredMinutes(duration);
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primary.withOpacity(0.1)
-                              : AppColors.surfaceVariant,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              '$duration',
-                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.textPrimary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              l10n.minutes(1).replaceAll('1 ', ''),
-                              style: TextStyle(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
       ),
     );
   }
@@ -834,6 +733,242 @@ class _TimePickerTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Bildirim test kartı
+class _NotificationTestCard extends StatefulWidget {
+  final SettingsState settingsState;
+
+  const _NotificationTestCard({required this.settingsState});
+
+  @override
+  State<_NotificationTestCard> createState() => _NotificationTestCardState();
+}
+
+class _NotificationTestCardState extends State<_NotificationTestCard> {
+  bool _hasPermission = false;
+  bool _isCheckingPermission = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermission();
+  }
+
+  Future<void> _checkPermission() async {
+    final has = await NotificationService().hasPermission();
+    if (mounted) {
+      setState(() {
+        _hasPermission = has;
+        _isCheckingPermission = false;
+      });
+    }
+  }
+
+  void _showResult(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // İzin durumu göstergesi
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (_hasPermission ? AppColors.success : AppColors.error)
+                        .withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    _isCheckingPermission
+                        ? Icons.hourglass_empty_rounded
+                        : _hasPermission
+                            ? Icons.notifications_active_rounded
+                            : Icons.notifications_off_rounded,
+                    color: _isCheckingPermission
+                        ? AppColors.textHint
+                        : _hasPermission
+                            ? AppColors.success
+                            : AppColors.error,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Bildirim İzni',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        _isCheckingPermission
+                            ? 'Kontrol ediliyor...'
+                            : _hasPermission
+                                ? 'İzin verildi ✅'
+                                : 'İzin verilmedi ❌',
+                        style: TextStyle(
+                          color: _isCheckingPermission
+                              ? AppColors.textHint
+                              : _hasPermission
+                                  ? AppColors.success
+                                  : AppColors.error,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!_hasPermission && !_isCheckingPermission)
+                  TextButton(
+                    onPressed: () async {
+                      await NotificationService().openNotificationSettings();
+                      await _checkPermission();
+                    },
+                    child: Text(
+                      'Aç',
+                      style: TextStyle(color: AppColors.primary),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          const Divider(height: 1),
+
+          // Aktif zamanlama bilgisi
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(Icons.schedule_rounded, color: AppColors.textHint, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.settingsState.notificationsEnabled
+                        ? 'Görev: ${widget.settingsState.availableStart} • Motivasyon: ${_motivationTime(widget.settingsState.availableStart)}'
+                        : 'Bildirimler kapalı',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(height: 1),
+
+          // Test butonları
+          _TestButton(
+            icon: Icons.notifications_rounded,
+            label: 'Anında Test Et',
+            subtitle: 'Bildirimi şimdi göster',
+            onTap: _hasPermission
+                ? () async {
+                    await NotificationService().showTestNotification();
+                    _showResult('Test bildirimi gönderildi! 🔔');
+                  }
+                : null,
+          ),
+
+        ],
+      ),
+    );
+  }
+
+  /// Motivasyon saatini hesapla (görev saatinden 2 saat önce)
+  String _motivationTime(String startTime) {
+    final parts = startTime.split(':');
+    final hour = int.tryParse(parts.isNotEmpty ? parts[0] : '19') ?? 19;
+    final motivationHour = (hour - 2).clamp(9, 23);
+    return '$motivationHour:00';
+  }
+}
+
+class _TestButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final VoidCallback? onTap;
+
+  const _TestButton({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = onTap == null;
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: (isDisabled ? AppColors.textHint : AppColors.primary).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          color: isDisabled ? AppColors.textHint : AppColors.primary,
+          size: 20,
+        ),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: isDisabled ? AppColors.textHint : null,
+          fontSize: 14,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          color: isDisabled ? AppColors.textHint.withOpacity(0.7) : AppColors.textSecondary,
+          fontSize: 12,
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: isDisabled ? AppColors.textHint.withOpacity(0.5) : AppColors.textHint,
+        size: 20,
+      ),
+      onTap: isDisabled ? null : onTap,
+      enabled: !isDisabled,
     );
   }
 }

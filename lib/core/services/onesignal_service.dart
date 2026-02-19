@@ -94,9 +94,14 @@ class OneSignalService {
   /// Son aktif zamanı güncelle
   static Future<void> updateLastActive() async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     await setUserTags({
       'last_active_date': '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
       'last_active_hour': now.hour.toString(),
+      // Segment filtreleri için: kaç gün önce aktifti (0 = bugün)
+      'days_since_active': '0',
+      // Kayıt tarihi (ilk kurulumda set edilir, sonradan değişmez)
+      'first_seen_date': '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}',
     });
   }
 

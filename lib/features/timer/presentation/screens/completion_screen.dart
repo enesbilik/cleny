@@ -317,9 +317,9 @@ class _ParticlePainter extends CustomPainter {
     final colors = [
       AppColors.primary,
       AppColors.primaryLight,
-      AppColors.secondary,
-      AppColors.accent,
-      const Color(0xFF90A4AE),
+      AppColors.primaryDark,
+      AppColors.success,
+      const Color(0xFFA5D6A7),
     ];
 
     for (int i = 0; i < 30; i++) {

@@ -1,10 +1,15 @@
 import 'dart:io';
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz_data;
 
-/// Bildirim servisi
+const int _kTimerId = 100;
+const int _kTestInstantId = 999;
+
+/// Bildirim servisi — singleton
+///
+/// Yerel bildirimler sadece timer tamamlanma ve anlık test için kullanılır.
+/// Günlük görev ve motivasyon bildirimleri OneSignal (Supabase Edge Function) üzerinden gelir.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -15,69 +20,64 @@ class NotificationService {
 
   bool _initialized = false;
 
-  /// Servisi başlat
+  static const _timerChannel = AndroidNotificationDetails(
+    'timer',
+    'Timer',
+    channelDescription: 'Timer tamamlanma bildirimleri',
+    importance: Importance.high,
+    priority: Priority.high,
+    icon: '@mipmap/ic_launcher',
+  );
+
+  static const _testChannel = AndroidNotificationDetails(
+    'test',
+    'Test',
+    channelDescription: 'Test bildirimleri',
+    importance: Importance.high,
+    priority: Priority.high,
+    icon: '@mipmap/ic_launcher',
+  );
+
+  static const _iosDefault = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+  );
+
+  // ─── Başlatma ───────────────────────────────────────────────────────────────
+
   Future<void> initialize() async {
     if (_initialized) return;
 
-    // Timezone'ları başlat — cihazın yerel UTC offset'ini kullan
-    tz_data.initializeTimeZones();
-    // DateTime.now() cihazın yerel saatini verir; UTC offset'ten IANA tz bulmak
-    // yerine doğrudan local timezone'u kullanmak için timezone paketinin
-    // getLocation'ını offset-tabanlı isimle dene, başarısız olursa UTC kullan.
-    try {
-      final localOffset = DateTime.now().timeZoneOffset;
-      final offsetHours = localOffset.inHours;
-      // Pozitif offset: Etc/GMT-N, negatif: Etc/GMT+N (POSIX convention ters)
-      final gmtName = offsetHours == 0
-          ? 'UTC'
-          : offsetHours > 0
-              ? 'Etc/GMT-$offsetHours'
-              : 'Etc/GMT+${offsetHours.abs()}';
-      tz.setLocalLocation(tz.getLocation(gmtName));
-    } catch (_) {
-      tz.setLocalLocation(tz.UTC);
-    }
-
-    // Android ayarları
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    // iOS ayarları
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
 
-    const settings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
     await _notifications.initialize(
-      settings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      onDidReceiveNotificationResponse: _onTapped,
     );
 
     _initialized = true;
+    debugPrint('NotificationService initialized ✅');
   }
 
-  /// Bildirime tıklandığında
-  void _onNotificationTapped(NotificationResponse response) {
-    debugPrint('Notification tapped: ${response.payload}');
-    // İleride deep linking eklenebilir
+  void _onTapped(NotificationResponse response) {
+    debugPrint('Bildirime tıklandı: ${response.payload}');
   }
 
-  /// İzin iste
+  // ─── İzin ───────────────────────────────────────────────────────────────────
+
+  /// Bildirim izni iste. OneSignal için de gerekli.
   Future<bool> requestPermission() async {
     if (Platform.isIOS) {
       final result = await _notifications
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+          ?.requestPermissions(alert: true, badge: true, sound: true);
       return result ?? false;
     } else if (Platform.isAndroid) {
       final result = await _notifications
@@ -89,267 +89,48 @@ class NotificationService {
     return false;
   }
 
-  /// Günlük görev bildirimi zamanla
-  Future<void> scheduleDailyTaskNotification({
-    required int hour,
-    required int minute,
-    String title = 'Bugünün Sürprizi Hazır! 🎁',
-    String body = '15 dakikada evini toparla!',
-  }) async {
-    // Mevcut bildirimi iptal et
-    await _notifications.cancel(1);
-
-    // Yeni zamanı hesapla
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-
-    // Eğer zaman geçtiyse yarına ayarla
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    await _notifications.zonedSchedule(
-      1, // Görev bildirimi ID'si
-      title,
-      body,
-      scheduledDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_task',
-          'Günlük Görev',
-          channelDescription: 'Günlük temizlik görev bildirimleri',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time, // Her gün tekrarla
-    );
-
-    debugPrint('Bildirim zamanlandı: $scheduledDate');
-  }
-
-  /// Motivasyon bildirimi zamanla
-  Future<void> scheduleMotivationNotification({
-    int hour = 12,
-    int minute = 0,
-    String title = 'Küçük Adımlar, Büyük Fark! ✨',
-    String body = 'Bugün bir mikro görev tamamladın mı?',
-  }) async {
-    // Mevcut bildirimi iptal et
-    await _notifications.cancel(2);
-
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    await _notifications.zonedSchedule(
-      2, // Motivasyon bildirimi ID'si
-      title,
-      body,
-      scheduledDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'motivation',
-          'Motivasyon',
-          channelDescription: 'Motivasyon bildirimleri',
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: false,
-          presentSound: true,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-  }
-
-  /// Sistem bildirim ayarlarını aç (izin reddedilince kullanıcıya yönlendir)
-  /// Android'de tekrar izin diyaloğu açar; iOS'ta hiçbir şey yapılmaz
-  /// (iOS izin bir kez reddedilince sadece sistem ayarlarından açılabilir)
+  /// Cihazın bildirim ayarları sayfasını aç.
   Future<void> openNotificationSettings() async {
     try {
-      if (Platform.isAndroid) {
-        // Android'de tekrar izin iste
-        await _notifications
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestNotificationsPermission();
-      }
-      // iOS için deep link desteği flutter_local_notifications'da yok;
-      // kullanıcı SnackBar mesajıyla Ayarlar > Bildirimler'e yönlendirilir.
+      await AppSettings.openAppSettings(type: AppSettingsType.notification);
     } catch (e) {
       debugPrint('openNotificationSettings error: $e');
     }
   }
 
-  /// Tüm bildirimleri iptal et
-  Future<void> cancelAllNotifications() async {
-    await _notifications.cancelAll();
+  /// Mevcut bildirim iznini sorgula.
+  Future<bool> hasPermission() async {
+    if (Platform.isAndroid) {
+      final impl = _notifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      return await impl?.areNotificationsEnabled() ?? false;
+    }
+    return true;
   }
 
-  /// Belirli bir bildirimi iptal et
-  Future<void> cancelNotification(int id) async {
-    await _notifications.cancel(id);
-  }
+  // ─── Anlık bildirimler ───────────────────────────────────────────────────────
 
-  /// Timer tamamlandı bildirimi (anında)
+  /// Timer ekranı kapandığında çalan anlık bildirim.
   Future<void> showTimerCompletedNotification() async {
     await _notifications.show(
-      100,
+      _kTimerId,
       'Süre Doldu! ⏰',
       'Görevini tamamlamak için uygulamaya dön.',
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'timer',
-          'Timer',
-          channelDescription: 'Timer bildirimleri',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
+      NotificationDetails(android: _timerChannel, iOS: _iosDefault),
     );
   }
 
-  /// 🧪 TEST: Anında bildirim göster
+  /// Anında görünen test bildirimi.
   Future<void> showTestNotification() async {
     await _notifications.show(
-      999,
+      _kTestInstantId,
       'Test Bildirimi 🧪',
       'Bildirimler çalışıyor! Harika!',
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'test',
-          'Test',
-          channelDescription: 'Test bildirimleri',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
+      NotificationDetails(android: _testChannel, iOS: _iosDefault),
     );
+    debugPrint('Test bildirimi gönderildi ✅');
   }
 
-  /// 🧪 TEST: 5 saniye sonra bildirim göster
-  Future<void> showDelayedTestNotification() async {
-    final scheduledDate = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
-    
-    await _notifications.zonedSchedule(
-      998,
-      'Zamanlanmış Test 🕐',
-      '5 saniye sonra geldi! Zamanlama çalışıyor!',
-      scheduledDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'test',
-          'Test',
-          channelDescription: 'Test bildirimleri',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
-    
-    debugPrint('Test bildirimi zamanlandı: $scheduledDate');
-  }
-
-  /// Motivasyon mesajları listesi
-  static const List<Map<String, String>> motivationMessages = [
-    {'title': 'Bugün Harika Bir Gün! 🌟', 'body': 'Sadece 15 dakika ile evini değiştir!'},
-    {'title': 'Süpermen Değilsin, Ama... 💪', 'body': 'Süper temiz bir ev yapabilirsin!'},
-    {'title': 'Netflix Bekleyebilir 📺', 'body': 'Önce 15 dakika temizlik, sonra dizi!'},
-    {'title': 'Temizlik = Terapi 🧘', 'body': 'Zihnini de temizle, evini de!'},
-    {'title': '3... 2... 1... Başla! 🚀', 'body': 'Bugünün görevi seni bekliyor!'},
-    {'title': 'Anne Görse Gurur Duyardı 👩', 'body': '15 dakikada anneyi mutlu et!'},
-    {'title': 'Streak\'ini Kırma! 🔥', 'body': 'Bugün de devam et, şampiyon!'},
-    {'title': 'Evdeki Kahraman! 🦸', 'body': 'Bugünkü görevini al ve parla!'},
-    {'title': 'Mikro Görev Zamanı! ⚡', 'body': 'Küçük adım, büyük fark yaratır!'},
-    {'title': 'Temiz Ev, Mutlu Sen! 😊', 'body': 'Bugün de kendine bir iyilik yap!'},
-  ];
-
-  /// 🧪 TEST: Rastgele motivasyon bildirimi göster (5 saniye sonra)
-  Future<void> showRandomMotivationNotification() async {
-    final random = DateTime.now().millisecondsSinceEpoch % motivationMessages.length;
-    final message = motivationMessages[random];
-    final scheduledDate = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
-    
-    await _notifications.zonedSchedule(
-      997,
-      message['title']!,
-      message['body']!,
-      scheduledDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'motivation',
-          'Motivasyon',
-          channelDescription: 'Motivasyon bildirimleri',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
-    
-    debugPrint('Motivasyon bildirimi zamanlandı: $scheduledDate');
-  }
+  Future<void> cancelAllNotifications() async => _notifications.cancelAll();
+  Future<void> cancelNotification(int id) async => _notifications.cancel(id);
 }
-

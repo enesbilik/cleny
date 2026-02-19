@@ -166,7 +166,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     }
   }
 
-  /// Bildirim ayarını değiştir
+  /// Bildirim ayarını değiştir ve zamanlamayı güncelle
   Future<void> setNotificationsEnabled(bool enabled) async {
     try {
       final userId = SupabaseService.currentUser?.id;
@@ -223,7 +223,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     }
   }
 
-  /// Bildirim saatini ayarla
+  /// Bildirim saatini ayarla ve zamanlamayı güncelle
   Future<void> setAvailableTime(String start, String end) async {
     try {
       final userId = SupabaseService.currentUser?.id;
@@ -237,10 +237,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
           })
           .eq('user_id', userId);
 
-      state = state.copyWith(
-        availableStart: start,
-        availableEnd: end,
-      );
+      state = state.copyWith(availableStart: start, availableEnd: end);
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }

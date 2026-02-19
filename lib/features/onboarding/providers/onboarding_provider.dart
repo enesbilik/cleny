@@ -19,7 +19,7 @@ class OnboardingState {
     this.rooms = const [],
     this.availableStart = '19:00',
     this.availableEnd = '22:00',
-    this.preferredMinutes = 10,
+    this.preferredMinutes = 15,
     this.isLoading = false,
     this.error,
   });

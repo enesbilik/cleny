@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/onesignal_service.dart';
+import '../../../../core/services/cleaning_tips_service.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../settings/presentation/screens/settings_screen.dart';
 import '../../../settings/providers/settings_provider.dart';
@@ -46,21 +47,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     debugPrint('Bildirim izni: ${granted ? "Verildi ✅" : "Reddedildi ❌"}');
 
     if (granted) {
-      // Kullanıcının ayarlardan belirlediği saati al
-      final settings = ref.read(settingsProvider);
-      final timeParts = settings.availableStart.split(':');
-      final hour = int.tryParse(timeParts.isNotEmpty ? timeParts[0] : '19') ?? 19;
-      final minute = int.tryParse(timeParts.length > 1 ? timeParts[1] : '0') ?? 0;
-
-      await notificationService.scheduleDailyTaskNotification(
-        hour: hour,
-        minute: minute,
-      );
-
       // OneSignal kullanıcı kaydı ve segment tag'lerini sync et
       await OneSignalService.syncCurrentUser();
 
-      debugPrint('Bildirim zamanlandı: $hour:${minute.toString().padLeft(2, '0')}');
+      debugPrint('Bildirim izni alındı, OneSignal sync edildi ✅');
     } else {
       // İzin reddedilince kullanıcıya nazik bir bilgi mesajı göster
       if (!mounted) return;
@@ -79,7 +69,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
-          backgroundColor: const Color(0xFF323232),
+          backgroundColor: AppColors.textPrimary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -88,7 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           duration: const Duration(seconds: 5),
           action: SnackBarAction(
             label: l10n.notificationPermissionOpenSettings,
-            textColor: const Color(0xFF80CBC4),
+            textColor: AppColors.primaryLight,
             onPressed: () {
               // Sistem ayarlarına yönlendir
               notificationService.openNotificationSettings();
@@ -157,13 +147,13 @@ class _HomeTab extends ConsumerWidget {
     final homeState = ref.watch(homeProvider);
     final userName = _getUserName();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Selamlama ve Streak
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Selamlama ve Streak (üstte sabit)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
@@ -187,18 +177,36 @@ class _HomeTab extends ConsumerWidget {
               _StreakBadge(streak: homeState.currentStreak),
             ],
           ),
+        ),
 
-          const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
-          // Ev Görseli
-          const HouseIllustration(),
+        // Ev Görseli - kalan alanı doldurur
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: const HouseIllustration(),
+          ),
+        ),
 
-          const SizedBox(height: 20),
+        const SizedBox(height: 20),
 
-          // Günlük Görev Kartı
-          _DailyTaskSection(homeState: homeState, ref: ref),
-        ],
-      ),
+        // Günlük Görev Kartı ve İpucu - altta sabit
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _DailyTaskSection(homeState: homeState, ref: ref),
+              if (homeState.todayTask?.isCompleted == true) ...[
+                const SizedBox(height: 16),
+                const _DailyTip(),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -217,7 +225,10 @@ class _DailyTaskSection extends StatelessWidget {
   Widget build(BuildContext context) {
     // Tamamlandıysa
     if (homeState.todayTask?.isCompleted == true) {
-      return _CompletedCard();
+      return _CompletedCard(
+        taskTitle: homeState.taskCatalog?.title,
+        roomName: homeState.taskRoom?.name,
+      );
     }
 
     // Açıldıysa - görev detayları
@@ -232,7 +243,6 @@ class _DailyTaskSection extends StatelessWidget {
 
     // Kapalı - sürpriz kutusu
     return _SurpriseCard(
-      taskDuration: homeState.taskCatalog?.estimatedMinutes ?? 10,
       onReveal: () => _showTaskRevealPopup(context),
     );
   }
@@ -266,7 +276,7 @@ class _DailyTaskSection extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(l10n.taskBlacklistedMessage),
-                backgroundColor: const Color(0xFF323232),
+                backgroundColor: AppColors.textPrimary,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -322,7 +332,7 @@ class _StreakBadge extends StatelessWidget {
           Text(
             l10n.dayStreak(streak),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: AppColors.accent,
+              color: AppColors.primary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -334,11 +344,9 @@ class _StreakBadge extends StatelessWidget {
 
 /// Sürpriz kartı
 class _SurpriseCard extends StatelessWidget {
-  final int taskDuration;
   final VoidCallback onReveal;
 
   const _SurpriseCard({
-    required this.taskDuration,
     required this.onReveal,
   });
 
@@ -394,13 +402,6 @@ class _SurpriseCard extends StatelessWidget {
                     l10n.todaysSurpriseReady,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.onlyTakesMinutes(taskDuration),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -484,14 +485,14 @@ class _GiftBoxState extends State<_GiftBox> with SingleTickerProviderStateMixin 
         height: 100,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFFFFCC80), Color(0xFFFFB74D)],
+            colors: [AppColors.primaryLight, AppColors.primary],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFFB74D).withOpacity(0.3),
+              color: AppColors.primary.withOpacity(0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -559,7 +560,7 @@ class _RevealedCard extends StatelessWidget {
                       Text(
                         roomName!.toUpperCase(),
                         style: TextStyle(
-                          color: AppColors.accent,
+                          color: AppColors.primaryDark,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
@@ -578,18 +579,18 @@ class _RevealedCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.1),
+                  color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.timer_outlined, size: 16, color: AppColors.accent),
+                    Icon(Icons.timer_outlined, size: 16, color: AppColors.primary),
                     const SizedBox(width: 4),
                     Text(
                       l10n.minutesShort(taskDuration),
                       style: TextStyle(
-                        color: AppColors.accent,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -619,36 +620,46 @@ class _RevealedCard extends StatelessWidget {
 
 /// Tamamlanmış kart
 class _CompletedCard extends StatelessWidget {
+  final String? taskTitle;
+  final String? roomName;
+
+  const _CompletedCard({
+    this.taskTitle,
+    this.roomName,
+  });
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.success.withOpacity(0.1),
-            AppColors.success.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.success.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
+          // Check ikonu
           Container(
-            width: 56,
-            height: 56,
-            decoration: const BoxDecoration(
-              color: AppColors.success,
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_rounded, color: Colors.white, size: 32),
+            child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 16),
+          // İçerik
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -656,15 +667,116 @@ class _CompletedCard extends StatelessWidget {
                 Text(
                   l10n.todaysTaskCompleted,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.success,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
+                if (taskTitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    roomName != null ? '$taskTitle • $roomName' : taskTitle!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 6),
                 Text(
                   l10n.newSurpriseAwaitsTomorrow,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textHint,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Günün ipucu kartı
+class _DailyTip extends StatefulWidget {
+  const _DailyTip();
+
+  @override
+  State<_DailyTip> createState() => _DailyTipState();
+}
+
+class _DailyTipState extends State<_DailyTip> {
+  String? _tipText;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTip();
+  }
+
+  Future<void> _loadTip() async {
+    try {
+      final tip = await CleaningTipsService.getDailyTip();
+      if (mounted) {
+        setState(() {
+          _tipText = tip;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('_DailyTip load error: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    // İpucu yoksa veya yükleniyorsa göster
+    if (_isLoading || _tipText == null || _tipText!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.lightbulb_outline_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.dailyTipTitle,
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _tipText!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.3,
                   ),
                 ),
               ],
@@ -778,7 +890,7 @@ class _ProgressTab extends ConsumerWidget {
                   value: '${homeState.currentStreak}',
                   subtitle: l10n.days,
                   description: l10n.keepItUp,
-                  color: AppColors.accent,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),

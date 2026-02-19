@@ -317,7 +317,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get newSurpriseDaily => 'Her gün yeni bir sürpriz';
 
   @override
-  String get streakMotivation => 'Her gün bir adım, evine yansır 🏠';
+  String get streakMotivation => 'Serini koru, motivasyonunu artır';
 
   @override
   String helloUser(String name) {
@@ -702,4 +702,42 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get taskBlacklistedMessage =>
       'Anladık! Yarın sana farklı bir görev seçeceğiz 👍';
+
+  @override
+  String get todaysSummary => 'Bugünün Özeti';
+
+  @override
+  String get totalCleans => 'Toplam';
+
+  @override
+  String get last7Days => 'Son 7 Gün';
+
+  @override
+  String cleanDays(int count) {
+    return '$count gün temiz';
+  }
+
+  @override
+  String get dailyTipTitle => 'Günün İpucu';
+
+  @override
+  String get dailyTip1 => 'Yatmadan önce tezgahı silmek sabahı güzelleştirir';
+
+  @override
+  String get dailyTip2 => 'Her eşyaya bir yer belirle, toparlamak kolaylaşır';
+
+  @override
+  String get dailyTip3 => 'Ayakkabıları kapıda çıkarmak evi temiz tutar';
+
+  @override
+  String get dailyTip4 => 'Çöp poşetini hemen değiştir, erteleme';
+
+  @override
+  String get dailyTip5 => 'Bulaşıkları hemen yıka, birikmesini önle';
+
+  @override
+  String get wellDoneToday => 'Bugün harika iş çıkardın!';
+
+  @override
+  String get yourHomeIsGettingBetter => 'Evin gün geçtikçe daha güzel oluyor';
 }

@@ -62,6 +62,19 @@ CREATE TABLE IF NOT EXISTS daily_tasks (
     UNIQUE(user_id, date)
 );
 
+-- Cleaning Tips (Temizlik İpuçları)
+CREATE TABLE IF NOT EXISTS cleaning_tips (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tip_text TEXT NOT NULL,
+    category TEXT, -- Örn: 'bulaşık', 'perde', 'ince_temizlik', 'genel'
+    day_of_week INTEGER CHECK (day_of_week BETWEEN 1 AND 7), -- (eski kolon, artık kullanılmıyor)
+    tip_date DATE, -- Hangi tarih için gösterilmeli (NULL ise genel)
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    is_active BOOLEAN DEFAULT TRUE
+);
+ALTER TABLE cleaning_tips ADD COLUMN IF NOT EXISTS tip_date DATE;
+
 -- =====================================================
 -- INDEXES
 -- =====================================================
@@ -70,6 +83,8 @@ CREATE INDEX IF NOT EXISTS idx_rooms_user_id ON rooms(user_id);
 CREATE INDEX IF NOT EXISTS idx_daily_tasks_user_id ON daily_tasks(user_id);
 CREATE INDEX IF NOT EXISTS idx_daily_tasks_date ON daily_tasks(date);
 CREATE INDEX IF NOT EXISTS idx_daily_tasks_user_date ON daily_tasks(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_cleaning_tips_active ON cleaning_tips(is_active) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_cleaning_tips_tip_date ON cleaning_tips(tip_date);
 
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS)
@@ -80,47 +95,66 @@ ALTER TABLE users_profile ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks_catalog ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cleaning_tips ENABLE ROW LEVEL SECURITY;
 
 -- Users Profile Policies
+DROP POLICY IF EXISTS "Users can view own profile" ON users_profile;
 CREATE POLICY "Users can view own profile" ON users_profile
     FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON users_profile;
 CREATE POLICY "Users can insert own profile" ON users_profile
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON users_profile;
 CREATE POLICY "Users can update own profile" ON users_profile
     FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own profile" ON users_profile;
 CREATE POLICY "Users can delete own profile" ON users_profile
     FOR DELETE USING (auth.uid() = user_id);
 
 -- Rooms Policies
+DROP POLICY IF EXISTS "Users can view own rooms" ON rooms;
 CREATE POLICY "Users can view own rooms" ON rooms
     FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own rooms" ON rooms;
 CREATE POLICY "Users can insert own rooms" ON rooms
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own rooms" ON rooms;
 CREATE POLICY "Users can update own rooms" ON rooms
     FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own rooms" ON rooms;
 CREATE POLICY "Users can delete own rooms" ON rooms
     FOR DELETE USING (auth.uid() = user_id);
 
 -- Tasks Catalog Policies (read-only for all authenticated users)
+DROP POLICY IF EXISTS "Anyone can view tasks catalog" ON tasks_catalog;
 CREATE POLICY "Anyone can view tasks catalog" ON tasks_catalog
     FOR SELECT USING (true);
 
+-- Cleaning Tips Policies (read-only for all authenticated users)
+DROP POLICY IF EXISTS "Anyone can view active cleaning tips" ON cleaning_tips;
+CREATE POLICY "Anyone can view active cleaning tips" ON cleaning_tips
+    FOR SELECT USING (is_active = TRUE);
+
 -- Daily Tasks Policies
+DROP POLICY IF EXISTS "Users can view own daily tasks" ON daily_tasks;
 CREATE POLICY "Users can view own daily tasks" ON daily_tasks
     FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own daily tasks" ON daily_tasks;
 CREATE POLICY "Users can insert own daily tasks" ON daily_tasks
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own daily tasks" ON daily_tasks;
 CREATE POLICY "Users can update own daily tasks" ON daily_tasks
     FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own daily tasks" ON daily_tasks;
 CREATE POLICY "Users can delete own daily tasks" ON daily_tasks
     FOR DELETE USING (auth.uid() = user_id);
 
@@ -149,4 +183,18 @@ CREATE TRIGGER update_rooms_updated_at
     BEFORE UPDATE ON rooms
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_cleaning_tips_updated_at ON cleaning_tips;
+CREATE TRIGGER update_cleaning_tips_updated_at
+    BEFORE UPDATE ON cleaning_tips
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- =====================================================
+-- SEED DATA
+-- =====================================================
+
+-- Tarih bazlı temizlik ipuçları (her gün farklı ipucu)
+-- Bu veriler MCP/migrations ile eklenir; script yeniden çalıştırıldığında çakışma yaratmaz.
+-- Üretim ortamında ayrı bir migration veya admin paneli ile güncellenir.
 

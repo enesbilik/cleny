@@ -701,7 +701,7 @@ abstract class AppLocalizations {
   /// No description provided for @streakMotivation.
   ///
   /// In en, this message translates to:
-  /// **'One day at a time, reflected in your home 🏠'**
+  /// **'Keep your streak, boost your motivation'**
   String get streakMotivation;
 
   /// No description provided for @helloUser.
@@ -1411,6 +1411,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it! We\'ll pick a different task for you tomorrow 👍'**
   String get taskBlacklistedMessage;
+
+  /// No description provided for @todaysSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Summary'**
+  String get todaysSummary;
+
+  /// No description provided for @totalCleans.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalCleans;
+
+  /// No description provided for @last7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 Days'**
+  String get last7Days;
+
+  /// No description provided for @cleanDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} clean days'**
+  String cleanDays(int count);
+
+  /// No description provided for @dailyTipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Tip'**
+  String get dailyTipTitle;
+
+  /// No description provided for @dailyTip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Wiping the counter before bed makes your morning better'**
+  String get dailyTip1;
+
+  /// No description provided for @dailyTip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign a place for everything, tidying gets easier'**
+  String get dailyTip2;
+
+  /// No description provided for @dailyTip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking shoes off at the door keeps your home clean'**
+  String get dailyTip3;
+
+  /// No description provided for @dailyTip4.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the trash bag right away, don\'t postpone'**
+  String get dailyTip4;
+
+  /// No description provided for @dailyTip5.
+  ///
+  /// In en, this message translates to:
+  /// **'Wash the dishes immediately, prevent piling up'**
+  String get dailyTip5;
+
+  /// No description provided for @wellDoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Great work today!'**
+  String get wellDoneToday;
+
+  /// No description provided for @yourHomeIsGettingBetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Your home is getting better every day'**
+  String get yourHomeIsGettingBetter;
 }
 
 class _AppLocalizationsDelegate

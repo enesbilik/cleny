@@ -132,7 +132,7 @@
   "onlyTenMinutesDaily": "Keep your home tidy\nwith just 15 minutes a day",
   "microTasksBigDifference": "Micro tasks, big difference",
   "newSurpriseDaily": "A new surprise every day",
-  "streakMotivation": "One day at a time, reflected in your home 🏠",
+  "streakMotivation": "Keep your streak, boost your motivation",
   
   "helloUser": "Hello, {name}! 👋",
   "@helloUser": {
@@ -328,5 +328,25 @@
   "notificationPermissionOpenSettings": "Settings",
 
   "neverShowThisTask": "Don't show this task again",
-  "taskBlacklistedMessage": "Got it! We'll pick a different task for you tomorrow 👍"
+  "taskBlacklistedMessage": "Got it! We'll pick a different task for you tomorrow 👍",
+
+  "todaysSummary": "Today's Summary",
+  "totalCleans": "Total",
+  "last7Days": "Last 7 Days",
+  "cleanDays": "{count} clean days",
+  "@cleanDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyTipTitle": "Daily Tip",
+  "dailyTip1": "Wiping the counter before bed makes your morning better",
+  "dailyTip2": "Assign a place for everything, tidying gets easier",
+  "dailyTip3": "Taking shoes off at the door keeps your home clean",
+  "dailyTip4": "Replace the trash bag right away, don't postpone",
+  "dailyTip5": "Wash the dishes immediately, prevent piling up",
+  "wellDoneToday": "Great work today!",
+  "yourHomeIsGettingBetter": "Your home is getting better every day"
 }

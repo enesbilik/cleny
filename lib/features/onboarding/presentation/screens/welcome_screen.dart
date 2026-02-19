@@ -113,12 +113,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             icon: Icons.timer_outlined,
                             text: l10n.microTasksBigDifference,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           _FeatureRow(
                             icon: Icons.card_giftcard_outlined,
                             text: l10n.newSurpriseDaily,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           _FeatureRow(
                             icon: Icons.emoji_events_outlined,
                             text: l10n.streakMotivation,
@@ -187,58 +187,63 @@ class _LogoSection extends StatelessWidget {
       children: [
         // Dış halka
         Container(
-          width: 180,
-          height: 180,
+          width: 200,
+          height: 200,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primaryLight.withValues(alpha: 0.15),
+            color: AppColors.primaryLight.withValues(alpha: 0.1),
           ),
         ),
         // Orta halka
         Container(
-          width: 140,
-          height: 140,
+          width: 160,
+          height: 160,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primaryLight.withValues(alpha: 0.25),
+            color: AppColors.primaryLight.withValues(alpha: 0.2),
           ),
         ),
         // İç daire (logo)
         Container(
-          width: 100,
-          height: 100,
+          width: 110,
+          height: 110,
           decoration: BoxDecoration(
             gradient: AppColors.primaryGradient,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+                color: AppColors.primary.withValues(alpha: 0.35),
+                blurRadius: 28,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
           child: const Icon(
             Icons.home_rounded,
-            size: 48,
+            size: 52,
             color: Colors.white,
           ),
         ),
         // Dekoratif elementler
         Positioned(
-          top: 20,
-          right: 10,
-          child: _DecorDot(color: AppColors.accent, size: 12),
+          top: 18,
+          right: 8,
+          child: _DecorDot(color: AppColors.primaryLight, size: 14),
         ),
         Positioned(
-          bottom: 30,
-          left: 15,
-          child: _DecorDot(color: AppColors.secondary, size: 8),
+          bottom: 28,
+          left: 12,
+          child: _DecorDot(color: AppColors.primary, size: 10),
         ),
         Positioned(
-          top: 60,
-          left: 5,
-          child: _DecorDot(color: AppColors.primaryLight, size: 10),
+          top: 55,
+          left: 2,
+          child: _DecorDot(color: AppColors.primaryLight, size: 12),
+        ),
+        Positioned(
+          bottom: 60,
+          right: 5,
+          child: _DecorDot(color: AppColors.primaryDark, size: 8),
         ),
       ],
     );
@@ -274,31 +279,42 @@ class _FeatureRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.primaryLight.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 20,
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.1),
         ),
-        const SizedBox(width: 12),
-        Text(
-          text,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primary,
+              size: 22,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
