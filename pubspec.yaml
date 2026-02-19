@@ -80,16 +80,13 @@ flutter_launcher_icons:
   min_sdk_android: 21
   remove_alpha_ios: true
 
-# Splash Screen Configuration
+# Splash Screen Configuration - Sadece beyaz arka plan, görsel yok
 flutter_native_splash:
-  color: "#4CAF50"
-  image: "assets/icon/splash_icon.png"
-  color_dark: "#2E7D32"
-  image_dark: "assets/icon/splash_icon.png"
+  color: "#FFFFFF"
+  color_dark: "#FFFFFF"
   android_12:
-    color: "#4CAF50"
-    icon_background_color: "#4CAF50"
-    image: "assets/icon/splash_icon.png"
+    color: "#FFFFFF"
+    icon_background_color: "#FFFFFF"
   ios: true
   android: true
 

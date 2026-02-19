@@ -39,6 +39,9 @@ class HomeState {
   final List<CompletedTask> recentCleans;
   final Set<DateTime> completedDates;
   final String? error;
+  // Streak Freeze
+  final int streakFreezeCount;
+  final bool streakWasFrozenToday;
 
   const HomeState({
     this.isLoading = true,
@@ -53,7 +56,35 @@ class HomeState {
     this.recentCleans = const [],
     this.completedDates = const {},
     this.error,
+    this.streakFreezeCount = 0,
+    this.streakWasFrozenToday = false,
   });
+
+  /// Son temizlikten bu yana geçen gün sayısı.
+  /// Bugün tamamlandıysa 0, hiç temizlik yoksa 999.
+  int get daysSinceLastClean {
+    if (todayTask?.isCompleted == true) return 0;
+    if (completedDates.isEmpty) return 999;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    int minDiff = 999;
+    for (final d in completedDates) {
+      final normalized = DateTime(d.year, d.month, d.day);
+      final diff = today.difference(normalized).inDays;
+      if (diff < minDiff) minDiff = diff;
+    }
+    return minDiff;
+  }
+
+  /// Ev fotoğrafı durumu: 'clean', 'medium', 'dirty'
+  String get houseImageState {
+    final days = daysSinceLastClean;
+    if (days <= 1) return 'clean';
+    if (days <= 2) return 'medium';
+    return 'dirty';
+  }
 
   HomeState copyWith({
     bool? isLoading,
@@ -68,6 +99,8 @@ class HomeState {
     List<CompletedTask>? recentCleans,
     Set<DateTime>? completedDates,
     String? error,
+    int? streakFreezeCount,
+    bool? streakWasFrozenToday,
   }) {
     return HomeState(
       isLoading: isLoading ?? this.isLoading,
@@ -82,6 +115,8 @@ class HomeState {
       recentCleans: recentCleans ?? this.recentCleans,
       completedDates: completedDates ?? this.completedDates,
       error: error,
+      streakFreezeCount: streakFreezeCount ?? this.streakFreezeCount,
+      streakWasFrozenToday: streakWasFrozenToday ?? this.streakWasFrozenToday,
     );
   }
 }
@@ -250,8 +285,12 @@ class HomeNotifier extends StateNotifier<HomeState> {
 
   /// Network'ten veri yükle ve cache'e kaydet
   Future<void> _loadFromNetwork(String userId, {bool silent = false}) async {
-    // Bugünün görevini al veya oluştur
-    final todayTask = await _taskSelectionService.getOrCreateTodayTask(userId);
+    // Bugünün görevini al veya oluştur (blacklist'i geçir)
+    final blacklist = _getBlacklist();
+    final todayTask = await _taskSelectionService.getOrCreateTodayTask(
+      userId,
+      blacklist: blacklist,
+    );
 
     // Görev kataloğunu al
     TaskCatalog? taskCatalog;
@@ -277,34 +316,25 @@ class HomeNotifier extends StateNotifier<HomeState> {
     // Cache'e kaydet
     await _saveToCache(statsData, recentCleans, cleanlinessLevel, todayTask);
 
+    final newState = state.copyWith(
+      isLoading: silent ? null : false,
+      todayTask: todayTask,
+      taskCatalog: taskCatalog,
+      taskRoom: taskRoom,
+      isTaskRevealed: todayTask?.isRevealed ?? false,
+      cleanlinessLevel: cleanlinessLevel,
+      currentStreak: statsData['current'] ?? 0,
+      bestStreak: statsData['best'] ?? 0,
+      totalCompleted: statsData['total'] ?? 0,
+      recentCleans: recentCleans,
+      completedDates: statsData['dates'] ?? <DateTime>{},
+      streakFreezeCount: statsData['streakFreezeCount'] ?? 0,
+      streakWasFrozenToday: statsData['streakWasFrozenToday'] ?? false,
+    );
     if (!silent) {
-      state = state.copyWith(
-        isLoading: false,
-        todayTask: todayTask,
-        taskCatalog: taskCatalog,
-        taskRoom: taskRoom,
-        isTaskRevealed: todayTask?.isRevealed ?? false,
-        cleanlinessLevel: cleanlinessLevel,
-        currentStreak: statsData['current'] ?? 0,
-        bestStreak: statsData['best'] ?? 0,
-        totalCompleted: statsData['total'] ?? 0,
-        recentCleans: recentCleans,
-        completedDates: statsData['dates'] ?? <DateTime>{},
-      );
+      state = newState.copyWith(isLoading: false);
     } else {
-      // Silent update - sadece değişen verileri güncelle
-      state = state.copyWith(
-        todayTask: todayTask,
-        taskCatalog: taskCatalog,
-        taskRoom: taskRoom,
-        isTaskRevealed: todayTask?.isRevealed ?? false,
-        cleanlinessLevel: cleanlinessLevel,
-        currentStreak: statsData['current'] ?? 0,
-        bestStreak: statsData['best'] ?? 0,
-        totalCompleted: statsData['total'] ?? 0,
-        recentCleans: recentCleans,
-        completedDates: statsData['dates'] ?? <DateTime>{},
-      );
+      state = newState;
     }
   }
 
@@ -404,12 +434,20 @@ class HomeNotifier extends StateNotifier<HomeState> {
 
       debugPrint('completeTask: Supabase update successful');
 
-      // State güncelle
-      state = state.copyWith(todayTask: completedTask);
+      // Anında UI feedback: görev completed + streak +1 optimistic update
+      final optimisticStreak = state.currentStreak + 1;
+      final today = DateTime(now.year, now.month, now.day);
+      final updatedDates = {...state.completedDates, today};
+      state = state.copyWith(
+        todayTask: completedTask,
+        currentStreak: optimisticStreak,
+        totalCompleted: state.totalCompleted + 1,
+        completedDates: updatedDates,
+      );
 
-      // Verileri yeniden yükle (streak ve seviye güncellemesi için)
+      // Arka planda gerçek veriyi yükle (streak doğrulaması + cleanliness level)
       await loadData(forceRefresh: true);
-      
+
       // OneSignal tag'lerini güncelle (push notification segmentasyonu için)
       await _updateOneSignalTags();
       
@@ -485,25 +523,36 @@ class HomeNotifier extends StateNotifier<HomeState> {
       final completedDatesSet = allDates.toSet();
       final totalCompleted = allDates.length;
 
-      // Current streak hesapla
+      // Streak Freeze hakkını Hive'dan oku
+      final freezeCount = _getStreakFreezeCount();
+
+      // Current streak hesapla (freeze desteği ile)
       final now = DateTime.now();
       int currentStreak = 0;
+      bool streakWasFrozenToday = false;
       var checkDate = DateTime(now.year, now.month, now.day);
 
+      bool _isCompleted(DateTime d) => completedDatesSet.any((c) =>
+          c.year == d.year && c.month == d.month && c.day == d.day);
+
       // Bugün tamamlanmadıysa dünden başla
-      if (!completedDatesSet.any((d) =>
-          d.year == checkDate.year &&
-          d.month == checkDate.month &&
-          d.day == checkDate.day)) {
+      if (!_isCompleted(checkDate)) {
         checkDate = checkDate.subtract(const Duration(days: 1));
       }
 
-      while (completedDatesSet.any((d) =>
-          d.year == checkDate.year &&
-          d.month == checkDate.month &&
-          d.day == checkDate.day)) {
-        currentStreak++;
-        checkDate = checkDate.subtract(const Duration(days: 1));
+      int freezesUsed = 0;
+      while (true) {
+        if (_isCompleted(checkDate)) {
+          currentStreak++;
+          checkDate = checkDate.subtract(const Duration(days: 1));
+        } else if (freezesUsed < freezeCount) {
+          // Freeze hakkı kullan: bu günü atla, streak korunur
+          freezesUsed++;
+          streakWasFrozenToday = true;
+          checkDate = checkDate.subtract(const Duration(days: 1));
+        } else {
+          break;
+        }
       }
 
       // Best streak hesapla
@@ -525,70 +574,155 @@ class HomeNotifier extends StateNotifier<HomeState> {
         }
       }
       if (tempStreak > bestStreak) bestStreak = tempStreak;
+      if (currentStreak > bestStreak) bestStreak = currentStreak;
 
       return {
         'current': currentStreak,
         'best': bestStreak,
         'total': totalCompleted,
         'dates': completedDatesSet,
+        'streakFreezeCount': freezeCount,
+        'streakWasFrozenToday': streakWasFrozenToday,
       };
     } catch (e) {
-      return {'current': 0, 'best': 0, 'total': 0, 'dates': <DateTime>{}};
+      return {
+        'current': 0,
+        'best': 0,
+        'total': 0,
+        'dates': <DateTime>{},
+        'streakFreezeCount': 0,
+        'streakWasFrozenToday': false,
+      };
     }
   }
 
+  /// Görevi kalıcı olarak blacklist'e ekle ve bugün için yeni görev seç
+  Future<void> skipTaskForever() async {
+    final taskCatalogId = state.todayTask?.taskCatalogId;
+    if (taskCatalogId == null || taskCatalogId.isEmpty) return;
+
+    try {
+      // Blacklist'e ekle (Hive cache)
+      final blacklist = _getBlacklist();
+      if (!blacklist.contains(taskCatalogId)) {
+        blacklist.add(taskCatalogId);
+        await cacheService.save(
+          'task_blacklist',
+          blacklist,
+          validFor: const Duration(days: 365 * 10), // Kalıcı
+        );
+        debugPrint('Task blacklisted: $taskCatalogId. Total: ${blacklist.length}');
+      }
+
+      // Bugünkü görevi Supabase'den sil (yeni görev seçilecek)
+      final userId = SupabaseService.currentUser?.id;
+      if (userId != null && state.todayTask != null) {
+        await SupabaseService.client
+            .from('daily_tasks')
+            .delete()
+            .eq('id', state.todayTask!.id);
+      }
+
+      // State'i sıfırla ve yeniden yükle (yeni görev seçilecek)
+      state = state.copyWith(
+        todayTask: null,
+        taskCatalog: null,
+        taskRoom: null,
+        isTaskRevealed: false,
+        isLoading: true,
+      );
+
+      await loadData(forceRefresh: true);
+    } catch (e) {
+      debugPrint('skipTaskForever error: $e');
+    }
+  }
+
+  /// Blacklist'teki görev ID'lerini oku
+  List<String> _getBlacklist() {
+    try {
+      return cacheService.get<List<String>>(
+            'task_blacklist',
+            fromJson: (d) => (d as List).cast<String>(),
+            ignoreExpiry: true,
+          ) ??
+          [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Görev seçimi için blacklist'i dışarı aç (TaskSelectionService için)
+  List<String> getTaskBlacklist() => _getBlacklist();
+
+  /// Streak freeze sayısını Hive'dan oku (ayda 2 hak, her ay sıfırlanır)
+  int _getStreakFreezeCount() {
+    try {
+      final now = DateTime.now();
+      final monthKey = 'streak_freeze_${now.year}_${now.month}';
+      final used = cacheService.get<int>(monthKey,
+              fromJson: (d) => d as int, ignoreExpiry: true) ??
+          0;
+      const maxPerMonth = 2;
+      return (maxPerMonth - used).clamp(0, maxPerMonth);
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// Streak freeze hakkı kullan
+  Future<void> useStreakFreeze() async {
+    try {
+      final now = DateTime.now();
+      final monthKey = 'streak_freeze_${now.year}_${now.month}';
+      final used = cacheService.get<int>(monthKey,
+              fromJson: (d) => d as int, ignoreExpiry: true) ??
+          0;
+      await cacheService.save(monthKey, used + 1,
+          validFor: const Duration(days: 35));
+      debugPrint('Streak freeze kullanıldı. Kalan: ${_getStreakFreezeCount()}');
+    } catch (e) {
+      debugPrint('useStreakFreeze error: $e');
+    }
+  }
+
+  /// Son tamamlanan görevleri tek sorguda (join ile) al — N+1 yok
   Future<List<CompletedTask>> _getRecentCleans(String userId) async {
     try {
       debugPrint('_getRecentCleans: Fetching for user $userId');
-      
+
+      // Tek sorguda daily_tasks + tasks_catalog + rooms join
       final response = await SupabaseService.client
           .from('daily_tasks')
-          .select('id, date, completed_at, task_catalog_id, room_id')
+          .select(
+            'id, completed_at, '
+            'tasks_catalog!task_catalog_id(title), '
+            'rooms!room_id(name)',
+          )
           .eq('user_id', userId)
           .eq('status', 'completed')
           .not('completed_at', 'is', null)
           .order('completed_at', ascending: false)
           .limit(10);
 
-      debugPrint('_getRecentCleans: Found ${(response as List).length} completed tasks');
+      debugPrint('_getRecentCleans: Found ${(response as List).length} tasks');
 
-      final tasks = <CompletedTask>[];
+      final tasks = (response as List).map((item) {
+        final catalogData = item['tasks_catalog'];
+        final roomData = item['rooms'];
+        final title = (catalogData is Map ? catalogData['title'] : null)
+                as String? ??
+            'Temizlik Görevi';
+        final roomName =
+            (roomData is Map ? roomData['name'] : null) as String?;
 
-      for (final item in response) {
-        // completed_at null kontrolü
-        if (item['completed_at'] == null) continue;
-        
-        // Görev başlığını al
-        String title = 'Temizlik Görevi';
-        try {
-          final catalogResponse = await SupabaseService.client
-              .from('tasks_catalog')
-              .select('title')
-              .eq('id', item['task_catalog_id'])
-              .single();
-          title = catalogResponse['title'] ?? title;
-        } catch (_) {}
-
-        // Oda adını al
-        String? roomName;
-        if (item['room_id'] != null) {
-          try {
-            final roomResponse = await SupabaseService.client
-                .from('rooms')
-                .select('name')
-                .eq('id', item['room_id'])
-                .single();
-            roomName = roomResponse['name'];
-          } catch (_) {}
-        }
-
-        tasks.add(CompletedTask(
-          id: item['id'],
+        return CompletedTask(
+          id: item['id'] as String,
           title: title,
-          completedAt: DateTime.parse(item['completed_at']),
+          completedAt: DateTime.parse(item['completed_at'] as String),
           roomName: roomName,
-        ));
-      }
+        );
+      }).toList();
 
       debugPrint('_getRecentCleans: Returning ${tasks.length} tasks');
       return tasks;

@@ -683,7 +683,7 @@ abstract class AppLocalizations {
   /// No description provided for @onlyTenMinutesDaily.
   ///
   /// In en, this message translates to:
-  /// **'Keep your home tidy\nwith just 10 minutes a day'**
+  /// **'Keep your home tidy\nwith just 15 minutes a day'**
   String get onlyTenMinutesDaily;
 
   /// No description provided for @microTasksBigDifference.
@@ -701,7 +701,7 @@ abstract class AppLocalizations {
   /// No description provided for @streakMotivation.
   ///
   /// In en, this message translates to:
-  /// **'Motivation with streaks'**
+  /// **'One day at a time, reflected in your home 🏠'**
   String get streakMotivation;
 
   /// No description provided for @helloUser.
@@ -1151,25 +1151,25 @@ abstract class AppLocalizations {
   /// No description provided for @availableTime.
   ///
   /// In en, this message translates to:
-  /// **'Available Time'**
+  /// **'Your Free Time'**
   String get availableTime;
 
   /// No description provided for @whenAreYouAvailable.
   ///
   /// In en, this message translates to:
-  /// **'When are you available?'**
+  /// **'When are you usually home?'**
   String get whenAreYouAvailable;
 
   /// No description provided for @notificationsBetweenTime.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll send notifications during these hours'**
+  /// **'We\'ll gently remind you somewhere in these hours 🔔'**
   String get notificationsBetweenTime;
 
   /// No description provided for @notificationsRandomTime.
   ///
   /// In en, this message translates to:
-  /// **'Notifications will be sent at a random time within this range'**
+  /// **'We keep the exact time a surprise — start whenever you feel ready'**
   String get notificationsRandomTime;
 
   /// No description provided for @endTimeMustBeAfterStart.
@@ -1387,6 +1387,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{month} {day}, {time}'**
   String dateTimeFormat(Object day, Object month, Object time);
+
+  /// No description provided for @notificationPermissionDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications to get your daily cleaning reminder'**
+  String get notificationPermissionDeniedMessage;
+
+  /// No description provided for @notificationPermissionOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get notificationPermissionOpenSettings;
+
+  /// No description provided for @neverShowThisTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show this task again'**
+  String get neverShowThisTask;
+
+  /// No description provided for @taskBlacklistedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it! We\'ll pick a different task for you tomorrow 👍'**
+  String get taskBlacklistedMessage;
 }
 
 class _AppLocalizationsDelegate

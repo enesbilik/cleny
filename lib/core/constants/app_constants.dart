@@ -9,8 +9,8 @@ class AppConstants {
   // Onboarding
   static const int minRoomCount = 1;
   static const int maxRoomCount = 10;
-  static const int defaultTaskDuration = 10; // dakika
-  static const List<int> taskDurationOptions = [10, 15];
+  static const int defaultTaskDuration = 15; // dakika
+  static const List<int> taskDurationOptions = [15]; // Tek seçenek: 15 dk
 
   // Timer
   static const int holdToCompleteDuration = 2000; // milisaniye (2 saniye)

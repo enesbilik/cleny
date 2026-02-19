@@ -6,6 +6,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/onesignal_service.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../settings/presentation/screens/settings_screen.dart';
 import '../../../settings/providers/settings_provider.dart';
@@ -27,25 +28,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Bildirim izni iste
-    _requestNotificationPermission();
+    // Bildirim izni iste (UI yüklendikten sonra)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestNotificationPermission();
+    });
   }
 
   Future<void> _requestNotificationPermission() async {
-    // Biraz gecikme ile iste (UI yüklendikten sonra)
-    await Future.delayed(const Duration(seconds: 1));
-    
+    // Biraz gecikme ile iste
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
     final notificationService = NotificationService();
     await notificationService.initialize();
     final granted = await notificationService.requestPermission();
-    
+
     debugPrint('Bildirim izni: ${granted ? "Verildi ✅" : "Reddedildi ❌"}');
-    
-    // İzin verildiyse varsayılan bildirimleri zamanla
+
     if (granted) {
+      // Kullanıcının ayarlardan belirlediği saati al
+      final settings = ref.read(settingsProvider);
+      final timeParts = settings.availableStart.split(':');
+      final hour = int.tryParse(timeParts.isNotEmpty ? timeParts[0] : '19') ?? 19;
+      final minute = int.tryParse(timeParts.length > 1 ? timeParts[1] : '0') ?? 0;
+
       await notificationService.scheduleDailyTaskNotification(
-        hour: 19,
-        minute: 0,
+        hour: hour,
+        minute: minute,
+      );
+
+      // OneSignal kullanıcı kaydı ve segment tag'lerini sync et
+      await OneSignalService.syncCurrentUser();
+
+      debugPrint('Bildirim zamanlandı: $hour:${minute.toString().padLeft(2, '0')}');
+    } else {
+      // İzin reddedilince kullanıcıya nazik bir bilgi mesajı göster
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Text('🔔', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.notificationPermissionDeniedMessage,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF323232),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: l10n.notificationPermissionOpenSettings,
+            textColor: const Color(0xFF80CBC4),
+            onPressed: () {
+              // Sistem ayarlarına yönlendir
+              notificationService.openNotificationSettings();
+            },
+          ),
+        ),
       );
     }
   }
@@ -86,16 +135,14 @@ class _HomeTab extends ConsumerWidget {
     final user = SupabaseService.currentUser;
     if (user == null) return '';
     
-    // user_metadata'dan isim al
     final metadata = user.userMetadata;
     if (metadata != null) {
       final name = metadata['name'] ?? metadata['full_name'];
       if (name != null && name.toString().isNotEmpty) {
-        return name.toString().split(' ').first; // İlk ismi al
+        return name.toString().split(' ').first;
       }
     }
     
-    // Email'den isim çıkar
     final email = user.email;
     if (email != null && email.contains('@')) {
       return email.split('@').first;
@@ -115,7 +162,7 @@ class _HomeTab extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Üst kısım - Selamlama ve Streak
+          // Selamlama ve Streak
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -137,22 +184,16 @@ class _HomeTab extends ConsumerWidget {
                   ),
                 ],
               ),
-              // Streak Badge
               _StreakBadge(streak: homeState.currentStreak),
             ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
           // Ev Görseli
           const HouseIllustration(),
 
-          const SizedBox(height: 24),
-
-          // Durum Mesajı
-          _StatusMessage(cleanlinessLevel: homeState.cleanlinessLevel),
-
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
           // Günlük Görev Kartı
           _DailyTaskSection(homeState: homeState, ref: ref),
@@ -217,6 +258,24 @@ class _DailyTaskSection extends StatelessWidget {
             ref.read(homeProvider.notifier).revealTask();
             Navigator.of(context).pop();
           },
+          onSkipForever: () {
+            Navigator.of(context).pop();
+            // Görevi blacklist'e ekle ve yeni görev seç
+            ref.read(homeProvider.notifier).skipTaskForever();
+            // Kullanıcıya geri bildirim ver
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.taskBlacklistedMessage),
+                backgroundColor: const Color(0xFF323232),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          },
         );
       },
       transitionBuilder: (context, anim1, anim2, child) {
@@ -269,72 +328,6 @@ class _StreakBadge extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Durum Mesajı
-class _StatusMessage extends StatelessWidget {
-  final int cleanlinessLevel;
-
-  const _StatusMessage({required this.cleanlinessLevel});
-
-  String _getTitle(AppLocalizations l10n) {
-    switch (cleanlinessLevel) {
-      case 0:
-        return l10n.cleaningTimeCame;
-      case 1:
-        return l10n.needsSomeTidying;
-      case 2:
-        return l10n.canTidyUpToday;
-      case 3:
-        return l10n.homeLooksGood;
-      case 4:
-        return l10n.perfectSparklingClean;
-      default:
-        return l10n.canTidyUpToday;
-    }
-  }
-
-  String _getSubtitle(AppLocalizations l10n) {
-    switch (cleanlinessLevel) {
-      case 0:
-        return l10n.letsStartHomesWaiting;
-      case 1:
-        return l10n.fewTasksWillFix;
-      case 2:
-        return l10n.homeNotBadJustSmallTouches;
-      case 3:
-        return l10n.doingGreatKeepItUp;
-      case 4:
-        return l10n.congratsHomeLooksAmazing;
-      default:
-        return l10n.homeNotBadJustSmallTouches;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    
-    return Column(
-      children: [
-        Text(
-          _getTitle(l10n),
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _getSubtitle(l10n),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 }

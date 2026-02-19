@@ -308,7 +308,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get onlyTenMinutesDaily =>
-      'Günde sadece 10 dakika ile\nevinizi düzenli tutun';
+      'Günde sadece 15 dakika ile\nevinizi düzenli tutun';
 
   @override
   String get microTasksBigDifference => 'Mikro görevler, büyük fark';
@@ -317,7 +317,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get newSurpriseDaily => 'Her gün yeni bir sürpriz';
 
   @override
-  String get streakMotivation => 'Streak ile motivasyon';
+  String get streakMotivation => 'Her gün bir adım, evine yansır 🏠';
 
   @override
   String helloUser(String name) {
@@ -565,18 +565,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get doItLater => 'Daha sonra yapacağım';
 
   @override
-  String get availableTime => 'Müsait Saat';
+  String get availableTime => 'Serbest Zamanın';
 
   @override
-  String get whenAreYouAvailable => 'Ne zaman müsaitsiniz?';
+  String get whenAreYouAvailable => 'Genellikle ne zaman evde olursun?';
 
   @override
   String get notificationsBetweenTime =>
-      'Bu saatler arasında size bildirim göndereceğiz';
+      'Seni bu saatler arasında nazikçe hatırlatırız 🔔';
 
   @override
   String get notificationsRandomTime =>
-      'Bildirimler bu saat aralığında rastgele bir zamanda gönderilecek';
+      'Tam olarak ne zaman göndereceğimizi sürpriz bırakıyoruz — hazır hissettiğinde başla';
 
   @override
   String get endTimeMustBeAfterStart => 'Bitiş saati başlangıçtan sonra olmalı';
@@ -688,4 +688,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String dateTimeFormat(Object day, Object month, Object time) {
     return '$day $month, $time';
   }
+
+  @override
+  String get notificationPermissionDeniedMessage =>
+      'Günlük temizlik hatırlatıcısı için bildirimlere izin ver';
+
+  @override
+  String get notificationPermissionOpenSettings => 'Ayarlar';
+
+  @override
+  String get neverShowThisTask => 'Bu görevi bir daha gösterme';
+
+  @override
+  String get taskBlacklistedMessage =>
+      'Anladık! Yarın sana farklı bir görev seçeceğiz 👍';
 }

@@ -12,6 +12,8 @@ class TaskRevealPopup extends StatefulWidget {
   final String? roomName;
   final VoidCallback onStart;
   final VoidCallback onClose;
+  /// "Bu görevi bir daha gösterme" butonu — null ise gösterilmez
+  final VoidCallback? onSkipForever;
 
   const TaskRevealPopup({
     super.key,
@@ -20,6 +22,7 @@ class TaskRevealPopup extends StatefulWidget {
     this.roomName,
     required this.onStart,
     required this.onClose,
+    this.onSkipForever,
   });
 
   @override
@@ -170,6 +173,7 @@ class _TaskRevealPopupState extends State<TaskRevealPopup>
                         roomName: widget.roomName,
                         onStart: widget.onStart,
                         onClose: widget.onClose,
+                        onSkipForever: widget.onSkipForever,
                       ),
                     ),
                 ],
@@ -323,6 +327,7 @@ class _TaskRevealCard extends StatelessWidget {
   final String? roomName;
   final VoidCallback onStart;
   final VoidCallback onClose;
+  final VoidCallback? onSkipForever;
 
   const _TaskRevealCard({
     required this.taskTitle,
@@ -330,6 +335,7 @@ class _TaskRevealCard extends StatelessWidget {
     this.roomName,
     required this.onStart,
     required this.onClose,
+    this.onSkipForever,
   });
 
   @override
@@ -485,6 +491,24 @@ class _TaskRevealCard extends StatelessWidget {
               ),
             ),
           ),
+
+          // "Bu görevi bir daha gösterme" butonu
+          if (onSkipForever != null) ...[
+            const SizedBox(height: 4),
+            TextButton(
+              onPressed: onSkipForever,
+              child: Text(
+                l10n.neverShowThisTask,
+                style: TextStyle(
+                  color: AppColors.textHint.withOpacity(0.6),
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColors.textHint.withOpacity(0.4),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

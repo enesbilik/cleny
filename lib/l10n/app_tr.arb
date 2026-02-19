@@ -112,10 +112,10 @@
   "turkish": "Türkçe",
   
   "cleanHomePeacefulLife": "Temiz ev,\nhuzurlu yaşam",
-  "onlyTenMinutesDaily": "Günde sadece 10 dakika ile\nevinizi düzenli tutun",
+  "onlyTenMinutesDaily": "Günde sadece 15 dakika ile\nevinizi düzenli tutun",
   "microTasksBigDifference": "Mikro görevler, büyük fark",
   "newSurpriseDaily": "Her gün yeni bir sürpriz",
-  "streakMotivation": "Streak ile motivasyon",
+  "streakMotivation": "Her gün bir adım, evine yansır 🏠",
   
   "helloUser": "Merhaba, {name}! 👋",
   "hello": "Merhaba! 👋",
@@ -203,10 +203,10 @@
   "startNow": "Hemen Başla!",
   "doItLater": "Daha sonra yapacağım",
   
-  "availableTime": "Müsait Saat",
-  "whenAreYouAvailable": "Ne zaman müsaitsiniz?",
-  "notificationsBetweenTime": "Bu saatler arasında size bildirim göndereceğiz",
-  "notificationsRandomTime": "Bildirimler bu saat aralığında rastgele bir zamanda gönderilecek",
+  "availableTime": "Serbest Zamanın",
+  "whenAreYouAvailable": "Genellikle ne zaman evde olursun?",
+  "notificationsBetweenTime": "Seni bu saatler arasında nazikçe hatırlatırız 🔔",
+  "notificationsRandomTime": "Tam olarak ne zaman göndereceğimizi sürpriz bırakıyoruz — hazır hissettiğinde başla",
   "endTimeMustBeAfterStart": "Bitiş saati başlangıçtan sonra olmalı",
   
   "dailyGoal": "Günlük Hedef",
@@ -246,5 +246,11 @@
   "dayFri": "Cum",
   "daySat": "Cmt",
   "daySun": "Paz",
-  "dateTimeFormat": "{day} {month}, {time}"
+  "dateTimeFormat": "{day} {month}, {time}",
+
+  "notificationPermissionDeniedMessage": "Günlük temizlik hatırlatıcısı için bildirimlere izin ver",
+  "notificationPermissionOpenSettings": "Ayarlar",
+
+  "neverShowThisTask": "Bu görevi bir daha gösterme",
+  "taskBlacklistedMessage": "Anladık! Yarın sana farklı bir görev seçeceğiz 👍"
 }

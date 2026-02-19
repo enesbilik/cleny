@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -683,7 +684,6 @@ class _RoomsBottomSheet extends StatefulWidget {
 
 class _RoomsBottomSheetState extends State<_RoomsBottomSheet> {
   late List<String> _rooms;
-  final _controller = TextEditingController();
 
   @override
   void initState() {
@@ -691,18 +691,10 @@ class _RoomsBottomSheetState extends State<_RoomsBottomSheet> {
     _rooms = List.from(widget.rooms);
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _addRoom() {
-    final name = _controller.text.trim();
-    if (name.isNotEmpty && !_rooms.contains(name)) {
+  void _addPreset(String name) {
+    if (!_rooms.contains(name)) {
       setState(() {
         _rooms.add(name);
-        _controller.clear();
       });
     }
   }
@@ -718,11 +710,13 @@ class _RoomsBottomSheetState extends State<_RoomsBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
+    // Henüz eklenmemiş preset odalar
+    final availablePresets = AppConstants.roomPresets
+        .where((p) => !_rooms.contains(p))
+        .toList();
+
     return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -741,7 +735,7 @@ class _RoomsBottomSheetState extends State<_RoomsBottomSheet> {
             ),
             const SizedBox(height: 16),
 
-            // Mevcut odalar
+            // Mevcut odalar (silinebilir chip'ler)
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -750,43 +744,35 @@ class _RoomsBottomSheetState extends State<_RoomsBottomSheet> {
                   label: Text(room),
                   deleteIcon: const Icon(Icons.close, size: 18),
                   onDeleted: _rooms.length > 1 ? () => _removeRoom(room) : null,
+                  backgroundColor: AppColors.primaryLight.withValues(alpha: 0.15),
+                  side: const BorderSide(color: AppColors.primary),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 16),
 
-            // Yeni oda ekle
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      hintText: l10n.addNewRoom,
-                      filled: true,
-                      fillColor: AppColors.surfaceVariant,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
-                    onSubmitted: (_) => _addRoom(),
-                  ),
+            // Eklenebilir preset odalar
+            if (availablePresets.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                l10n.quickAdd,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: AppColors.textSecondary,
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    onPressed: _addRoom,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: availablePresets.map((preset) {
+                  return ActionChip(
+                    label: Text(preset),
+                    avatar: const Icon(Icons.add, size: 16),
+                    onPressed: () => _addPreset(preset),
+                  );
+                }).toList(),
+              ),
+            ],
+
             const SizedBox(height: 24),
 
             // Kaydet butonu

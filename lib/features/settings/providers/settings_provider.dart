@@ -20,7 +20,7 @@ class SettingsState {
   const SettingsState({
     this.isLoading = true,
     this.rooms = const [],
-    this.preferredMinutes = 10,
+    this.preferredMinutes = 15,
     this.availableStart = '19:00',
     this.availableEnd = '22:00',
     this.notificationsEnabled = true,
@@ -101,7 +101,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       state = state.copyWith(
         isLoading: false,
         rooms: rooms,
-        preferredMinutes: profileResponse?['preferred_minutes'] ?? 10,
+        preferredMinutes: profileResponse?['preferred_minutes'] ?? 15,
         availableStart: profileResponse?['available_start'] ?? '19:00',
         availableEnd: profileResponse?['available_end'] ?? '22:00',
         notificationsEnabled: profileResponse?['notifications_enabled'] ?? true,

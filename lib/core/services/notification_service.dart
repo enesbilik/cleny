@@ -19,9 +19,24 @@ class NotificationService {
   Future<void> initialize() async {
     if (_initialized) return;
 
-    // Timezone'ları başlat
+    // Timezone'ları başlat — cihazın yerel UTC offset'ini kullan
     tz_data.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Europe/Istanbul'));
+    // DateTime.now() cihazın yerel saatini verir; UTC offset'ten IANA tz bulmak
+    // yerine doğrudan local timezone'u kullanmak için timezone paketinin
+    // getLocation'ını offset-tabanlı isimle dene, başarısız olursa UTC kullan.
+    try {
+      final localOffset = DateTime.now().timeZoneOffset;
+      final offsetHours = localOffset.inHours;
+      // Pozitif offset: Etc/GMT-N, negatif: Etc/GMT+N (POSIX convention ters)
+      final gmtName = offsetHours == 0
+          ? 'UTC'
+          : offsetHours > 0
+              ? 'Etc/GMT-$offsetHours'
+              : 'Etc/GMT+${offsetHours.abs()}';
+      tz.setLocalLocation(tz.getLocation(gmtName));
+    } catch (_) {
+      tz.setLocalLocation(tz.UTC);
+    }
 
     // Android ayarları
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -79,7 +94,7 @@ class NotificationService {
     required int hour,
     required int minute,
     String title = 'Bugünün Sürprizi Hazır! 🎁',
-    String body = '10 dakikada evini toparla!',
+    String body = '15 dakikada evini toparla!',
   }) async {
     // Mevcut bildirimi iptal et
     await _notifications.cancel(1);
@@ -180,6 +195,25 @@ class NotificationService {
     );
   }
 
+  /// Sistem bildirim ayarlarını aç (izin reddedilince kullanıcıya yönlendir)
+  /// Android'de tekrar izin diyaloğu açar; iOS'ta hiçbir şey yapılmaz
+  /// (iOS izin bir kez reddedilince sadece sistem ayarlarından açılabilir)
+  Future<void> openNotificationSettings() async {
+    try {
+      if (Platform.isAndroid) {
+        // Android'de tekrar izin iste
+        await _notifications
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.requestNotificationsPermission();
+      }
+      // iOS için deep link desteği flutter_local_notifications'da yok;
+      // kullanıcı SnackBar mesajıyla Ayarlar > Bildirimler'e yönlendirilir.
+    } catch (e) {
+      debugPrint('openNotificationSettings error: $e');
+    }
+  }
+
   /// Tüm bildirimleri iptal et
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
@@ -272,12 +306,12 @@ class NotificationService {
 
   /// Motivasyon mesajları listesi
   static const List<Map<String, String>> motivationMessages = [
-    {'title': 'Bugün Harika Bir Gün! 🌟', 'body': 'Sadece 10 dakika ile evini değiştir!'},
+    {'title': 'Bugün Harika Bir Gün! 🌟', 'body': 'Sadece 15 dakika ile evini değiştir!'},
     {'title': 'Süpermen Değilsin, Ama... 💪', 'body': 'Süper temiz bir ev yapabilirsin!'},
-    {'title': 'Netflix Bekleyebilir 📺', 'body': 'Önce 10 dakika temizlik, sonra dizi!'},
+    {'title': 'Netflix Bekleyebilir 📺', 'body': 'Önce 15 dakika temizlik, sonra dizi!'},
     {'title': 'Temizlik = Terapi 🧘', 'body': 'Zihnini de temizle, evini de!'},
     {'title': '3... 2... 1... Başla! 🚀', 'body': 'Bugünün görevi seni bekliyor!'},
-    {'title': 'Anne Görse Gurur Duyardı 👩', 'body': '10 dakikada anneyi mutlu et!'},
+    {'title': 'Anne Görse Gurur Duyardı 👩', 'body': '15 dakikada anneyi mutlu et!'},
     {'title': 'Streak\'ini Kırma! 🔥', 'body': 'Bugün de devam et, şampiyon!'},
     {'title': 'Evdeki Kahraman! 🦸', 'body': 'Bugünkü görevini al ve parla!'},
     {'title': 'Mikro Görev Zamanı! ⚡', 'body': 'Küçük adım, büyük fark yaratır!'},

@@ -19,7 +19,6 @@ class RoomSetupScreen extends ConsumerStatefulWidget {
 
 class _RoomSetupScreenState extends ConsumerState<RoomSetupScreen> {
   final List<RoomEntry> _rooms = [];
-  final _customController = TextEditingController();
   final _uuid = const Uuid();
 
   @override
@@ -27,12 +26,6 @@ class _RoomSetupScreenState extends ConsumerState<RoomSetupScreen> {
     super.initState();
     // Varsayılan olarak bir oda ekle
     _rooms.add(RoomEntry(id: _uuid.v4(), name: 'Salon'));
-  }
-
-  @override
-  void dispose() {
-    _customController.dispose();
-    super.dispose();
   }
 
   void _addRoom(String name) {
@@ -71,42 +64,6 @@ class _RoomSetupScreenState extends ConsumerState<RoomSetupScreen> {
     setState(() {
       _rooms.removeWhere((r) => r.id == id);
     });
-  }
-
-  void _showAddCustomRoomDialog() {
-    final l10n = AppLocalizations.of(context)!;
-    _customController.clear();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.customRoomTitle),
-        content: TextField(
-          controller: _customController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.enterRoomName,
-          ),
-          textCapitalization: TextCapitalization.sentences,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final name = _customController.text.trim();
-              if (name.isNotEmpty) {
-                _addRoom(name);
-                Navigator.pop(context);
-              }
-            },
-            child: Text(l10n.add),
-          ),
-        ],
-      ),
-    );
   }
 
   void _continue() {
@@ -209,13 +166,6 @@ class _RoomSetupScreenState extends ConsumerState<RoomSetupScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-
-              // Özel oda ekle
-              OutlinedButton.icon(
-                onPressed: _showAddCustomRoomDialog,
-                icon: const Icon(Icons.add),
-                label: Text(l10n.addCustomRoom),
-              ),
 
               const Spacer(),
 

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -375,17 +374,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 label: l10n.continueWithGoogle,
                 onTap: _isLoading ? null : _handleGoogleAuth,
               ),
-
-              // Apple ile giriş (sadece iOS)
-              if (Platform.isIOS) ...[
-                const SizedBox(height: 12),
-                _SocialButton(
-                  icon: Icons.apple,
-                  label: l10n.continueWithApple,
-                  onTap: _isLoading ? null : _handleAppleAuth,
-                  isBlack: true,
-                ),
-              ],
 
             ],
           ),

@@ -306,7 +306,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onlyTenMinutesDaily =>
-      'Keep your home tidy\nwith just 10 minutes a day';
+      'Keep your home tidy\nwith just 15 minutes a day';
 
   @override
   String get microTasksBigDifference => 'Micro tasks, big difference';
@@ -315,7 +315,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newSurpriseDaily => 'A new surprise every day';
 
   @override
-  String get streakMotivation => 'Motivation with streaks';
+  String get streakMotivation => 'One day at a time, reflected in your home 🏠';
 
   @override
   String helloUser(String name) {
@@ -564,18 +564,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doItLater => 'I\'ll do it later';
 
   @override
-  String get availableTime => 'Available Time';
+  String get availableTime => 'Your Free Time';
 
   @override
-  String get whenAreYouAvailable => 'When are you available?';
+  String get whenAreYouAvailable => 'When are you usually home?';
 
   @override
   String get notificationsBetweenTime =>
-      'We\'ll send notifications during these hours';
+      'We\'ll gently remind you somewhere in these hours 🔔';
 
   @override
   String get notificationsRandomTime =>
-      'Notifications will be sent at a random time within this range';
+      'We keep the exact time a surprise — start whenever you feel ready';
 
   @override
   String get endTimeMustBeAfterStart => 'End time must be after start time';
@@ -687,4 +687,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String dateTimeFormat(Object day, Object month, Object time) {
     return '$month $day, $time';
   }
+
+  @override
+  String get notificationPermissionDeniedMessage =>
+      'Enable notifications to get your daily cleaning reminder';
+
+  @override
+  String get notificationPermissionOpenSettings => 'Settings';
+
+  @override
+  String get neverShowThisTask => 'Don\'t show this task again';
+
+  @override
+  String get taskBlacklistedMessage =>
+      'Got it! We\'ll pick a different task for you tomorrow 👍';
 }

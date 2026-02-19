@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../router/app_router.dart';
 import '../../theme/app_colors.dart';
@@ -34,7 +35,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     
     // Animasyon controller
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 900),
       vsync: this,
     );
 
@@ -74,8 +75,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _isLoading = true;
 
     try {
-      // Minimum bekleme süresi (animasyon için)
-      await Future.delayed(const Duration(milliseconds: 800));
+      // Minimum bekleme süresi (animasyon için) - Lottie'nin en az 1 döngü tamamlaması için
+      await Future.delayed(const Duration(milliseconds: 1800));
       
       if (!mounted || _hasNavigated) return;
 
@@ -161,7 +162,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: AnimatedBuilder(
@@ -171,53 +172,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 opacity: _fadeAnimation.value,
                 child: Transform.scale(
                   scale: _scaleAnimation.value,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Logo/Icon
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.cleaning_services_rounded,
-                          size: 70,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      
-                      // App Name
-                      Text(
-                        'CleanLoop',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 48),
-                      
-                      // Loading Indicator
-                      const SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          strokeWidth: 3,
-                        ),
-                      ),
-                    ],
+                  child: Lottie.asset(
+                    'assets/animations/splash_spray.json',
+                    width: 220,
+                    height: 220,
+                    repeat: true,
+                    frameRate: FrameRate(60),
+                    options: LottieOptions(enableMergePaths: true),
                   ),
                 ),
               );

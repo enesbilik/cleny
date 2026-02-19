@@ -13,7 +13,8 @@ class TaskSelectionService {
   final _random = Random();
 
   /// Bugünün görevini al veya oluştur
-  Future<DailyTask?> getOrCreateTodayTask(String userId) async {
+  /// [blacklist]: Gösterilmemesi gereken task_catalog_id'leri (kullanıcı blacklist'i)
+  Future<DailyTask?> getOrCreateTodayTask(String userId, {List<String>? blacklist}) async {
     final today = _getTodayInIstanbul();
     final todayStr = today.toIso8601String().split('T').first;
 
@@ -31,7 +32,7 @@ class TaskSelectionService {
       }
 
       // Yoksa yeni görev oluştur
-      return await _createTodayTask(userId, today);
+      return await _createTodayTask(userId, today, blacklist: blacklist);
     } catch (e) {
       debugPrint('Görev alınamadı: $e');
       return null;
@@ -39,7 +40,7 @@ class TaskSelectionService {
   }
 
   /// Yeni günlük görev oluştur
-  Future<DailyTask?> _createTodayTask(String userId, DateTime today) async {
+  Future<DailyTask?> _createTodayTask(String userId, DateTime today, {List<String>? blacklist}) async {
     try {
       // Kullanıcının odalarını al
       final roomsResponse = await SupabaseService.client
@@ -83,11 +84,15 @@ class TaskSelectionService {
           .map((e) => DailyTask.fromJson(e))
           .toList();
 
+      // Blacklist'i al (dışarıdan inject edilebilir, yoksa boş)
+      final blacklistedIds = blacklist ?? [];
+
       // Akıllı seçim yap
       final selection = _selectTask(
         catalog: catalog,
         rooms: rooms,
         recentTasks: recentTasks,
+        blacklistedIds: blacklistedIds,
       );
 
       if (selection == null) {
@@ -123,10 +128,11 @@ class TaskSelectionService {
     required List<TaskCatalog> catalog,
     required List<Room> rooms,
     required List<DailyTask> recentTasks,
+    List<String> blacklistedIds = const [],
   }) {
     // Son 1 günde kullanılan oda ve görev tiplerini bul
     final yesterday = _getTodayInIstanbul().subtract(const Duration(days: 1));
-    
+
     final recentRoomIds = <String>{};
     final recentTaskTypes = <String>{};
 
@@ -143,8 +149,17 @@ class TaskSelectionService {
       }
     }
 
-    // Uygun görevleri filtrele
-    var availableTasks = catalog.toList();
+    // Uygun görevleri filtrele — önce blacklist'teki görevleri çıkar
+    var availableTasks = blacklistedIds.isNotEmpty
+        ? catalog.where((t) => !blacklistedIds.contains(t.id)).toList()
+        : catalog.toList();
+
+    // Tüm görevler blacklist'teyse blacklist'i görmezden gel (fallback)
+    if (availableTasks.isEmpty) {
+      debugPrint('Tüm görevler blacklist\'te, blacklist görmezden geliniyor');
+      availableTasks = catalog.toList();
+    }
+
     var availableRooms = rooms.toList();
 
     // Kural 1: Son 1 günde kullanılmayan task type'ları tercih et
@@ -191,13 +206,15 @@ class TaskSelectionService {
     return _TaskSelection(task: selectedTask, room: selectedRoom);
   }
 
-  /// Europe/Istanbul timezone'ına göre bugünün tarihini al
-  DateTime _getTodayInIstanbul() {
-    final now = DateTime.now().toUtc();
-    // Istanbul UTC+3
-    final istanbul = now.add(const Duration(hours: 3));
-    return DateTime(istanbul.year, istanbul.month, istanbul.day);
+  /// Kullanıcının cihaz timezone'una göre bugünün tarihini al
+  /// Hardcoded UTC+3 yerine sistem saati kullanılır — global kullanıcılar için doğru davranış
+  DateTime _getTodayLocal() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
   }
+
+  // Geriye dönük uyumluluk için alias
+  DateTime _getTodayInIstanbul() => _getTodayLocal();
 }
 
 /// Görev seçim sonucu

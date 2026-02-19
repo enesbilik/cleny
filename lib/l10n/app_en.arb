@@ -129,10 +129,10 @@
   "turkish": "Turkish",
   
   "cleanHomePeacefulLife": "Clean home,\npeaceful life",
-  "onlyTenMinutesDaily": "Keep your home tidy\nwith just 10 minutes a day",
+  "onlyTenMinutesDaily": "Keep your home tidy\nwith just 15 minutes a day",
   "microTasksBigDifference": "Micro tasks, big difference",
   "newSurpriseDaily": "A new surprise every day",
-  "streakMotivation": "Motivation with streaks",
+  "streakMotivation": "One day at a time, reflected in your home 🏠",
   
   "helloUser": "Hello, {name}! 👋",
   "@helloUser": {
@@ -279,10 +279,10 @@
   "startNow": "Start Now!",
   "doItLater": "I'll do it later",
   
-  "availableTime": "Available Time",
-  "whenAreYouAvailable": "When are you available?",
-  "notificationsBetweenTime": "We'll send notifications during these hours",
-  "notificationsRandomTime": "Notifications will be sent at a random time within this range",
+  "availableTime": "Your Free Time",
+  "whenAreYouAvailable": "When are you usually home?",
+  "notificationsBetweenTime": "We'll gently remind you somewhere in these hours 🔔",
+  "notificationsRandomTime": "We keep the exact time a surprise — start whenever you feel ready",
   "endTimeMustBeAfterStart": "End time must be after start time",
   
   "dailyGoal": "Daily Goal",
@@ -322,5 +322,11 @@
   "dayFri": "Fri",
   "daySat": "Sat",
   "daySun": "Sun",
-  "dateTimeFormat": "{month} {day}, {time}"
+  "dateTimeFormat": "{month} {day}, {time}",
+
+  "notificationPermissionDeniedMessage": "Enable notifications to get your daily cleaning reminder",
+  "notificationPermissionOpenSettings": "Settings",
+
+  "neverShowThisTask": "Don't show this task again",
+  "taskBlacklistedMessage": "Got it! We'll pick a different task for you tomorrow 👍"
 }
