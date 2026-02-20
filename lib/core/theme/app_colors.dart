@@ -57,5 +57,47 @@ class AppColors {
 
   // Shadows
   static const Color shadowColor = Color(0x1A000000);
+
+  // ── Precomputed alpha variants (avoids runtime withOpacity() allocation) ──
+
+  // black overlays
+  static const Color black03 = Color(0x08000000); // 3%
+  static const Color black05 = Color(0x0D000000); // 5%
+  static const Color black08 = Color(0x14000000); // 8%
+  static const Color black20 = Color(0x33000000); // 20%
+  static const Color black70 = Color(0xB3000000); // 70%
+
+  // primary (0xFF00BFA6)
+  static const Color primaryAlpha06 = Color(0x0F00BFA6); // 6%
+  // (primaryAlpha80 = 0xCC00BFA6 for high-opacity overlays)
+  static const Color primaryAlpha80 = Color(0xCC00BFA6); // 80%
+  static const Color primaryAlpha08 = Color(0x1400BFA6); // 8%
+  static const Color primaryAlpha10 = Color(0x1A00BFA6); // 10%
+  static const Color primaryAlpha15 = Color(0x2600BFA6); // 15%
+  static const Color primaryAlpha20 = Color(0x3300BFA6); // 20%
+  static const Color primaryAlpha30 = Color(0x4D00BFA6); // 30%
+
+  // primaryLight (0xFF5DF2D6)
+  static const Color primaryLightAlpha05 = Color(0x0D5DF2D6); // 5%
+  static const Color primaryLightAlpha10 = Color(0x1A5DF2D6); // 10%
+  static const Color primaryLightAlpha06 = Color(0x0F5DF2D6); // 6%
+  static const Color primaryLightAlpha20 = Color(0x335DF2D6); // 20%
+  static const Color primaryLightAlpha25 = Color(0x405DF2D6); // 25%
+
+  // surfaceVariant (0xFFF0F9F7)
+  static const Color surfaceVariantAlpha50 = Color(0x80F0F9F7); // 50%
+
+  // accent (0xFFFFB74D)
+  static const Color accentAlpha10 = Color(0x1AFFB74D); // 10%
+
+  // textHint (0xFF9CAAAE)
+  static const Color textHintAlpha40 = Color(0x669CAAAE); // 40%
+  static const Color textHintAlpha60 = Color(0x999CAAAE); // 60%
+
+  // status colors
+  static const Color successAlpha10 = Color(0x1A4CAF50); // success 10%
+  static const Color successAlpha30 = Color(0x4D4CAF50); // success 30%
+  static const Color errorAlpha10 = Color(0x1AE57373);   // error 10%
+  static const Color errorAlpha30 = Color(0x4DE57373);   // error 30%
 }
 

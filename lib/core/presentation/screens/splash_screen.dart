@@ -75,7 +75,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     try {
       // Minimum bekleme süresi (animasyon gözükebilsin diye)
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 500));
       
       if (!mounted || _hasNavigated) return;
 
@@ -115,20 +115,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (!mounted || _hasNavigated) return;
       await ref.read(settingsProvider.notifier).refresh();
 
-      // 4. Home verilerini yükle (görev durumu dahil) - TAM YÜKLENENE KADAR BEKLE
+      // 4. Home verilerini yükle — cache varsa hemen navige et (SWR pattern)
       if (!mounted || _hasNavigated) return;
       await ref.read(homeProvider.notifier).loadData(forceRefresh: false);
-      
-      // isLoading VE isRefreshing bitene kadar bekle (max 8 saniye)
-      // isRefreshing: cache'den hızlı yüklendi, arka planda network refresh devam ediyor
+
+      // Sadece ilk yüklemeyi (cache veya network) bekle, max 3 saniye.
+      // isRefreshing=true ise cache'den geldi, arka plan refresh devam eder — bekleme.
       int retryCount = 0;
-      while (retryCount < 80) {
+      while (retryCount < 30) {
         if (!mounted || _hasNavigated) return;
         final homeState = ref.read(homeProvider);
-        if (!homeState.isLoading && !homeState.isRefreshing) {
-          debugPrint('Splash: Home data fully loaded (cache + network)');
-          break;
-        }
+        if (!homeState.isLoading) break; // cache veya fresh data hazır
         await Future.delayed(const Duration(milliseconds: 100));
         retryCount++;
       }

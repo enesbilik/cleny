@@ -202,7 +202,7 @@ class _GiftBoxLarge extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFFB300).withOpacity(0.5),
+            color: const Color(0x80FFB300),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -220,9 +220,9 @@ class _GiftBoxLarge extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.8),
+                    AppColors.primaryAlpha80,
                     AppColors.primary,
-                    AppColors.primary.withOpacity(0.8),
+                    AppColors.primaryAlpha80,
                   ],
                 ),
               ),
@@ -238,9 +238,9 @@ class _GiftBoxLarge extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.8),
+                    AppColors.primaryAlpha80,
                     AppColors.primary,
-                    AppColors.primary.withOpacity(0.8),
+                    AppColors.primaryAlpha80,
                   ],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
@@ -350,7 +350,7 @@ class _TaskRevealCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: AppColors.black20,
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -366,8 +366,8 @@ class _TaskRevealCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withOpacity(0.2),
-                  AppColors.primaryLight.withOpacity(0.1),
+                  AppColors.primaryAlpha20,
+                  AppColors.primaryLightAlpha10,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -409,7 +409,7 @@ class _TaskRevealCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.1),
+                    color: AppColors.accentAlpha10,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -433,7 +433,7 @@ class _TaskRevealCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primaryAlpha10,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -474,7 +474,7 @@ class _TaskRevealCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 4,
-                shadowColor: AppColors.primary.withOpacity(0.3),
+                shadowColor: AppColors.primaryAlpha30,
               ),
             ),
           ),
@@ -500,11 +500,11 @@ class _TaskRevealCard extends StatelessWidget {
               child: Text(
                 l10n.neverShowThisTask,
                 style: TextStyle(
-                  color: AppColors.textHint.withOpacity(0.6),
+                  color: AppColors.textHintAlpha60,
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
                   decoration: TextDecoration.underline,
-                  decorationColor: AppColors.textHint.withOpacity(0.4),
+                  decorationColor: AppColors.textHintAlpha40,
                 ),
               ),
             ),
