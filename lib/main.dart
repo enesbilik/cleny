@@ -49,14 +49,12 @@ void main() async {
     // Offline modda devam et
   }
 
-  // OneSignal Push Notifications başlat
-  await OneSignalService.initialize();
-
-  // Local bildirimleri başlat
-  await NotificationService().initialize();
-
-  // Ses servisini başlat
-  await soundService.initialize();
+  // Bağımsız servisleri paralel başlat (Supabase'den sonra)
+  await Future.wait([
+    OneSignalService.initialize(),
+    NotificationService().initialize(),
+    soundService.initialize(),
+  ]);
 
   runApp(
     const ProviderScope(

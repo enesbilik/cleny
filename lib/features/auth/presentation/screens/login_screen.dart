@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -368,12 +370,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 24),
 
               // Google ile giriş
-              _SocialButton(
-                icon: Icons.g_mobiledata_rounded,
-                iconColor: Colors.red,
+              _GoogleSignInButton(
                 label: l10n.continueWithGoogle,
                 onTap: _isLoading ? null : _handleGoogleAuth,
+                isLoading: _isLoading,
               ),
+
+              const SizedBox(height: 16),
 
             ],
           ),
@@ -461,7 +464,7 @@ class _TextFieldState extends State<_TextField> {
   }
 }
 
-/// Sosyal giriş butonu
+/// Sosyal giriş butonu (generic)
 class _SocialButton extends StatelessWidget {
   final IconData icon;
   final Color? iconColor;
@@ -507,4 +510,130 @@ class _SocialButton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Google Sign-In butonu - resmi Google G logosu ile
+class _GoogleSignInButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onTap;
+  final bool isLoading;
+
+  const _GoogleSignInButton({
+    required this.label,
+    required this.onTap,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 56,
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF3C4043),
+          side: const BorderSide(color: Color(0xFFDADCE0), width: 1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 22,
+              height: 22,
+              child: CustomPaint(painter: _GoogleGLogoPainter()),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF3C4043),
+                letterSpacing: 0.1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Google G logosu CustomPainter ile
+class _GoogleGLogoPainter extends CustomPainter {
+  static const _blue = Color(0xFF4285F4);
+  static const _red = Color(0xFFEA4335);
+  static const _yellow = Color(0xFFFBBC05);
+  static const _green = Color(0xFF34A853);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final strokeW = size.width * 0.22;
+    final arcR = (size.width - strokeW) / 2;
+
+    final rect = Rect.fromCenter(
+      center: Offset(cx, cy),
+      width: arcR * 2,
+      height: arcR * 2,
+    );
+
+    double rad(double deg) => deg * math.pi / 180.0;
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeW
+      ..strokeCap = StrokeCap.butt;
+
+    // Mavi (üst): -50° → 50° (100°)
+    paint.color = _blue;
+    canvas.drawArc(rect, rad(-50), rad(100), false, paint);
+
+    // Yeşil (sağ-alt): 50° → 130° (80°)
+    paint.color = _green;
+    canvas.drawArc(rect, rad(50), rad(80), false, paint);
+
+    // Sarı (alt-sol): 130° → 200° (70°)
+    paint.color = _yellow;
+    canvas.drawArc(rect, rad(130), rad(70), false, paint);
+
+    // Kırmızı (sol): 200° → 310° (110°)
+    paint.color = _red;
+    canvas.drawArc(rect, rad(200), rad(110), false, paint);
+
+    // Beyaz maske: sağ üst köşeyi kapatır → G açıklığını oluşturur
+    final whitePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(
+      Rect.fromLTRB(cx - strokeW * 0.05, -2, size.width + 2, cy - strokeW * 0.42),
+      whitePaint,
+    );
+
+    // Mavi yatay çubuk (G'nin orta kolu)
+    final barPaint = Paint()
+      ..color = _blue
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(
+          cx - strokeW * 0.05,
+          cy - strokeW * 0.42,
+          cx + arcR + strokeW * 0.5,
+          cy + strokeW * 0.42,
+        ),
+        const Radius.circular(2),
+      ),
+      barPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

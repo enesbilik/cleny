@@ -75,7 +75,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     try {
       // Minimum bekleme süresi (animasyon gözükebilsin diye)
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 500));
       
       if (!mounted || _hasNavigated) return;
 
