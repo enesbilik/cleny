@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -223,6 +224,11 @@ class _DailyTaskSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Yükleniyor - iskelet ekranı göster
+    if (homeState.isLoading) {
+      return const _TaskSkeleton();
+    }
+
     // Tamamlandıysa
     if (homeState.todayTask?.isCompleted == true) {
       return _CompletedCard(
@@ -243,7 +249,10 @@ class _DailyTaskSection extends StatelessWidget {
 
     // Kapalı - sürpriz kutusu
     return _SurpriseCard(
-      onReveal: () => _showTaskRevealPopup(context),
+      onReveal: () {
+        HapticFeedback.mediumImpact();
+        _showTaskRevealPopup(context);
+      },
     );
   }
 
@@ -252,7 +261,7 @@ class _DailyTaskSection extends StatelessWidget {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: AppColors.black70,
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, anim1, anim2) {
         return TaskRevealPopup(
@@ -260,6 +269,7 @@ class _DailyTaskSection extends StatelessWidget {
           taskDuration: homeState.taskCatalog?.estimatedMinutes ?? 10,
           roomName: homeState.taskRoom?.name,
           onStart: () {
+            HapticFeedback.lightImpact();
             ref.read(homeProvider.notifier).revealTask();
             Navigator.of(context).pop();
             context.push(AppRoutes.timer);
@@ -301,6 +311,113 @@ class _DailyTaskSection extends StatelessWidget {
   }
 }
 
+/// İskelet yükleme animasyonu — shimmer efekti
+class _TaskSkeleton extends StatefulWidget {
+  const _TaskSkeleton();
+
+  @override
+  State<_TaskSkeleton> createState() => _TaskSkeletonState();
+}
+
+class _TaskSkeletonState extends State<_TaskSkeleton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _shimmer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1400),
+      vsync: this,
+    )..repeat();
+    _shimmer = Tween<double>(begin: -1.5, end: 1.5).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _shimmer,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ShimmerBox(width: 100, height: 14, shimmerValue: _shimmer.value),
+              const SizedBox(height: 12),
+              _ShimmerBox(width: double.infinity, height: 22, shimmerValue: _shimmer.value),
+              const SizedBox(height: 8),
+              _ShimmerBox(width: 200, height: 16, shimmerValue: _shimmer.value),
+              const SizedBox(height: 24),
+              _ShimmerBox(width: 160, height: 48, radius: 12, shimmerValue: _shimmer.value),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ShimmerBox extends StatelessWidget {
+  final double width;
+  final double height;
+  final double radius;
+  final double shimmerValue;
+
+  const _ShimmerBox({
+    required this.width,
+    required this.height,
+    required this.shimmerValue,
+    this.radius = 8,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          stops: const [0.0, 0.5, 1.0],
+          colors: const [
+            Color(0xFFEEEEEE),
+            Color(0xFFF5F5F5),
+            Color(0xFFEEEEEE),
+          ],
+          transform: _ShimmerTransform(shimmerValue),
+        ),
+      ),
+    );
+  }
+}
+
+class _ShimmerTransform extends GradientTransform {
+  final double value;
+  const _ShimmerTransform(this.value);
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * value, 0, 0);
+  }
+}
+
 /// Streak Badge
 class _StreakBadge extends StatelessWidget {
   final int streak;
@@ -317,8 +434,8 @@ class _StreakBadge extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+          const BoxShadow(
+            color: AppColors.black08,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -361,15 +478,15 @@ class _SurpriseCard extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppColors.primary.withOpacity(0.1),
-              AppColors.primaryLight.withOpacity(0.05),
+              AppColors.primaryAlpha10,
+              AppColors.primaryLightAlpha05,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppColors.primary.withOpacity(0.2),
+            color: AppColors.primaryAlpha20,
           ),
         ),
         child: Row(
@@ -491,8 +608,8 @@ class _GiftBoxState extends State<_GiftBox> with SingleTickerProviderStateMixin 
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
+            const BoxShadow(
+              color: AppColors.primaryAlpha30,
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -529,10 +646,10 @@ class _RevealedCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primaryAlpha30),
         boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
+          const BoxShadow(
+            color: AppColors.primaryAlpha10,
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -546,7 +663,7 @@ class _RevealedCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withOpacity(0.2),
+                  color: AppColors.primaryLightAlpha20,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text('🧹', style: TextStyle(fontSize: 24)),
@@ -579,7 +696,7 @@ class _RevealedCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primaryAlpha10,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -637,10 +754,10 @@ class _CompletedCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primaryAlpha20),
         boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.08),
+          const BoxShadow(
+            color: AppColors.primaryAlpha08,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -746,9 +863,9 @@ class _DailyTipState extends State<_DailyTip> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight.withOpacity(0.06),
+        color: AppColors.primaryLightAlpha06,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+        border: Border.all(color: AppColors.primaryAlpha10),
       ),
       child: Row(
         children: [
@@ -831,8 +948,8 @@ class _ProgressTab extends ConsumerWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                const BoxShadow(
+                  color: AppColors.black05,
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -856,7 +973,7 @@ class _ProgressTab extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryLight.withOpacity(0.2),
+                        color: AppColors.primaryLightAlpha20,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -919,29 +1036,7 @@ class _ProgressTab extends ConsumerWidget {
           const SizedBox(height: 12),
 
           if (homeState.recentCleans.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.check_box_outlined,
-                      size: 48,
-                      color: AppColors.textHint,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.allMicroHabitsLogged,
-                      style: TextStyle(color: AppColors.textHint),
-                    ),
-                  ],
-                ),
-              ),
-            )
+            _EmptyRecentCleans(l10n: l10n)
           else
             ...homeState.recentCleans.map((task) => _RecentCleanItem(task: task)),
         ],
@@ -1094,8 +1189,8 @@ class _StreakCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+          const BoxShadow(
+            color: AppColors.black05,
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1164,6 +1259,59 @@ class _StreakCard extends StatelessWidget {
   }
 }
 
+/// Boş durum — henüz hiç temizlik yok
+class _EmptyRecentCleans extends StatelessWidget {
+  final AppLocalizations l10n;
+
+  const _EmptyRecentCleans({required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariantAlpha50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primaryAlpha08),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryAlpha10,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.cleaning_services_rounded,
+              size: 36,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.allMicroHabitsLogged,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.cleaningTimeToday,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textHint,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Son temizlik item'ı
 class _RecentCleanItem extends StatelessWidget {
   final CompletedTask task;
@@ -1207,8 +1355,8 @@ class _RecentCleanItem extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+          const BoxShadow(
+            color: AppColors.black03,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1220,7 +1368,7 @@ class _RecentCleanItem extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primaryAlpha10,
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -1275,8 +1423,8 @@ class _BottomNavBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+          const BoxShadow(
+            color: AppColors.black05,
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),

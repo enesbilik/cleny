@@ -44,7 +44,7 @@ class SettingsContent extends ConsumerWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: AppColors.black05,
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -452,7 +452,7 @@ class _SettingsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.black05,
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -535,7 +535,7 @@ class _SettingsSwitch extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primaryAlpha10,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: AppColors.primary, size: 22),
@@ -745,7 +745,7 @@ class _LanguageTile extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primaryAlpha10,
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Icon(

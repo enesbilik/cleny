@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase servisi
@@ -15,12 +14,15 @@ class SupabaseService {
   }
 
   /// Supabase'i başlat
+  /// Build: flutter run --dart-define=SUPABASE_URL=https://x.supabase.co --dart-define=SUPABASE_ANON_KEY=xxx
   static Future<void> initialize() async {
-    final url = dotenv.env['SUPABASE_URL'];
-    final anonKey = dotenv.env['SUPABASE_ANON_KEY'];
+    const url = String.fromEnvironment('SUPABASE_URL');
+    const anonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
-    if (url == null || anonKey == null) {
-      throw Exception('SUPABASE_URL ve SUPABASE_ANON_KEY .env dosyasında tanımlanmalı');
+    if (url.isEmpty || anonKey.isEmpty) {
+      throw Exception(
+        'SUPABASE_URL and SUPABASE_ANON_KEY must be set via --dart-define at build time',
+      );
     }
 
     await Supabase.initialize(

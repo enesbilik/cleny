@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
@@ -57,8 +58,9 @@ class _CompletionScreenState extends State<CompletionScreen>
       _checkController.forward();
     });
 
-    // Kutlama sesini çal
+    // Kutlama sesini çal ve haptic feedback ver
     soundService.playCelebration();
+    HapticFeedback.heavyImpact();
   }
 
   @override
